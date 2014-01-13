@@ -1,3 +1,3 @@
 language: objective-c
-xcode_project: iOS/iPadDemoApp/pubnub.xcodeproj
-xcode_scheme: pubnub
+xcode_project: iOS/tests/iOSUnitTests/pubnub.xcodeproj
+xcode_scheme: pubnubTests

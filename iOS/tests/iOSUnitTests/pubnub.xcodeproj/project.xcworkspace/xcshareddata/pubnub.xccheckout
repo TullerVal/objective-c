@@ -5,36 +5,36 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>A2C771AF-F5E8-4DB5-83D0-C3DC5E06D11A</string>
+	<string>40CF5718-2030-457C-B945-C5FB071A9DD2</string>
 	<key>IDESourceControlProjectName</key>
 	<string>pubnub</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>36574A61-DDDC-47F6-9D2D-D46DC6001E0A</key>
-		<string>https://github.com/pubnub/objective-c</string>
+		<key>BAE8D4F0-0FE5-4B1C-841C-890D2956278B</key>
+		<string>https://github.com/TullerVal/objective-c</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>iOS/tests/iOSUnitTests/pubnub.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>36574A61-DDDC-47F6-9D2D-D46DC6001E0A</key>
+		<key>BAE8D4F0-0FE5-4B1C-841C-890D2956278B</key>
 		<string>../../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/pubnub/objective-c</string>
+	<string>https://github.com/TullerVal/objective-c</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>36574A61-DDDC-47F6-9D2D-D46DC6001E0A</string>
+	<string>BAE8D4F0-0FE5-4B1C-841C-890D2956278B</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>36574A61-DDDC-47F6-9D2D-D46DC6001E0A</string>
+			<string>BAE8D4F0-0FE5-4B1C-841C-890D2956278B</string>
 			<key>IDESourceControlWCCName</key>
-			<string>pubnub develop</string>
+			<string>pubnub TullerVal</string>
 		</dict>
 	</array>
 </dict>
