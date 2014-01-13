@@ -1,7 +1,4 @@
 language: objective-c
-//xcode_project: cocoa/PubNubMacOSTestApplication/PubNubMacOSTestApplication.xcodeproj
-//xcode_scheme: PubNubMacOSTestApplication
-
 xcode_project: iOS/tests/iOSUnitTests/pubnub.xcodeproj
 xcode_scheme: pubnubTests
 script: xcodebuild test -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
