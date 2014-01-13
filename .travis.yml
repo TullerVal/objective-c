@@ -1,0 +1,3 @@
+language: objective-c
+xcode_project: iOS/iPadDemoApp/pubnub.xcodeproj
+xcode_scheme: pubnub
