@@ -23,37 +23,10 @@
             </BuildableReference>
             <SkippedTests>
                <Test
-                  Identifier = "PNTimeTokenRequestTest">
-               </Test>
-               <Test
-                  Identifier = "PNSubscribeRequestTest">
-               </Test>
-               <Test
-                  Identifier = "PNServiceChannelTest">
-               </Test>
-               <Test
-                  Identifier = "PNReachabilityTest">
-               </Test>
-               <Test
-                  Identifier = "ChangingChannels">
-               </Test>
-               <Test
-                  Identifier = "BadJsonTest">
-               </Test>
-               <Test
-                  Identifier = "CatchupTest">
-               </Test>
-               <Test
-                  Identifier = "ApnsToken">
-               </Test>
-               <Test
                   Identifier = "HowToTests/test50RequestHistoryForChannel">
                </Test>
                <Test
                   Identifier = "TimeCommand/testHandleOriginLookup20">
-               </Test>
-               <Test
-                  Identifier = "TimeCommand">
                </Test>
                <Test
                   Identifier = "HowToTests/test20SubscribeOnChannels">
@@ -74,46 +47,22 @@
                   Identifier = "W_ChaosTest">
                </Test>
                <Test
-                  Identifier = "AbbreviatedPresenceTest">
-               </Test>
-               <Test
-                  Identifier = "PNLeaveRequestTest">
-               </Test>
-               <Test
-                  Identifier = "PNMessageHistoryRequestTest">
-               </Test>
-               <Test
-                  Identifier = "PNMessagingChannelTest">
-               </Test>
-               <Test
-                  Identifier = "PNMessagePostRequestTest">
-               </Test>
-               <Test
-                  Identifier = "HowToTests">
-               </Test>
-               <Test
-                  Identifier = "SendBigMessage">
-               </Test>
-               <Test
                   Identifier = "OversizedJSON">
                </Test>
                <Test
                   Identifier = "TimeOutTest">
                </Test>
                <Test
-                  Identifier = "PNSubscribeUnsubscribeTest">
-               </Test>
-               <Test
-                  Identifier = "HowToTests">
-               </Test>
-               <Test
-                  Identifier = "ChannelLimitTest">
-               </Test>
-               <Test
                   Identifier = "Configuration">
                </Test>
                <Test
                   Identifier = "PAMTest">
+               </Test>
+               <Test
+                  Identifier = "ChangingChannels">
+               </Test>
+               <Test
+                  Identifier = "PAMTestError">
                </Test>
             </SkippedTests>
          </TestableReference>
