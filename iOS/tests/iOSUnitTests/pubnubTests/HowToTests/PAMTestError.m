@@ -316,7 +316,7 @@
 		NSTimeInterval interval = -[start timeIntervalSinceNow];
 		NSLog(@"subscribeOnChannels interval %f", interval);
 		STAssertTrue( interval < [PubNub sharedInstance].configuration.subscriptionRequestTimeout+1, @"Timeout error, %f instead of %f", interval, [PubNub sharedInstance].configuration.subscriptionRequestTimeout);
-	}];
+	}]; 
 	for( int j=0; /*j<[PubNub sharedInstance].configuration.subscriptionRequestTimeout+1 &&
 				   isBlockCalled == NO*/ j<timeout; j++ )
 		[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
