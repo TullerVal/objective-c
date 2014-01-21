@@ -723,8 +723,8 @@
 				NSLog(@"requestHistoryForChannel error %@, start %@, end %@", error, startDate, endDate);
 			STAssertNil( error, @"requestHistoryForChannel error %@", error);
 		}
-		if( ch == nil )
-			STAssertNotNil( error, @"error cann't be nil");
+//		if( ch == nil )
+//			STAssertNotNil( error, @"error cann't be nil");
 	}];
 	//	while (dispatch_semaphore_wait(semaphore, DISPATCH_TIME_NOW) || handleClientMessageHistoryProcess == NO)
 	//		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
