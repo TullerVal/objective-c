@@ -47,12 +47,6 @@
                   Identifier = "ApnsToken">
                </Test>
                <Test
-                  Identifier = "PNHereNowRequestTest">
-               </Test>
-               <Test
-                  Identifier = "PNLatencyMeasureRequestTest">
-               </Test>
-               <Test
                   Identifier = "HowToTests/test50RequestHistoryForChannel">
                </Test>
                <Test
@@ -101,15 +95,6 @@
                   Identifier = "SendBigMessage">
                </Test>
                <Test
-                  Identifier = "PNCryptoHelperTest">
-               </Test>
-               <Test
-                  Identifier = "PNCryptoTest">
-               </Test>
-               <Test
-                  Identifier = "PAMTest">
-               </Test>
-               <Test
                   Identifier = "OversizedJSON">
                </Test>
                <Test
@@ -117,12 +102,6 @@
                </Test>
                <Test
                   Identifier = "PNSubscribeUnsubscribeTest">
-               </Test>
-               <Test
-                  Identifier = "PNCryptoHelperTest">
-               </Test>
-               <Test
-                  Identifier = "PNCryptoTest">
                </Test>
                <Test
                   Identifier = "HowToTests">
@@ -134,7 +113,7 @@
                   Identifier = "Configuration">
                </Test>
                <Test
-                  Identifier = "PAMTestError">
+                  Identifier = "PAMTest">
                </Test>
             </SkippedTests>
          </TestableReference>
