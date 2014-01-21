@@ -11,6 +11,6 @@ script:
 - cd iOS
 - ./copyLibs.sh
 - cd ..
-- xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTestsDebug -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+- xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTestsDebug -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO GCC_PREPROCESSOR_DEFINITIONS="COCOAPODS=1"
 - xcodebuild -showsdks
 - xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386
