@@ -1,10 +1,11 @@
 before_install:
 - sudo systemsetup -settimezone Europe/Zaporozhye
-- cd iOS
-- ./copyLibs.sh
 
 language: objective-c
 script:
+- cd iOS
+- ./copyLibs.sh
+- cd ..
 - xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTestsDebug -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
 - xcodebuild -showsdks
 - xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386
