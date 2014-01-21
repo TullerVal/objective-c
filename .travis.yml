@@ -5,3 +5,10 @@ language: objective-c
 script:
 - xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386
 - xcodebuild build -project cocoa/PubNubMacOSTestApplication/PubNubMacOSTestApplication.xcodeproj
+
+# whitelist
+branches:
+only:
+- master
+- develop
+- va
