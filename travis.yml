@@ -2,4 +2,6 @@ before_install:
  - sudo systemsetup -settimezone Europe/Zaporozhye
 
 language: objective-c
-script: xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTests -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+script:
+- xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTests -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+- xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTests -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
