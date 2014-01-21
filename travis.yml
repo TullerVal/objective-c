@@ -1,5 +1,5 @@
 before_install:
-- sudo systemsetup -settimezone Europe/Zaporozhye
+ - sudo systemsetup -settimezone Europe/Zaporozhye
 
 language: objective-c
 script:
