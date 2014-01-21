@@ -1,5 +1,7 @@
 before_install:
 - sudo systemsetup -settimezone Europe/Zaporozhye
+- cd iOS
+- ./copyLibs.sh
 
 language: objective-c
 script:
