@@ -3,5 +3,5 @@ before_install:
 
 language: objective-c
 script:
-- xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTests -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
-- xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTests -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+- xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTestsDebug -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+- xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme pubnubTestsDebug -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
