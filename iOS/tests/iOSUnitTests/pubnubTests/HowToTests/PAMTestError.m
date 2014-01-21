@@ -310,7 +310,7 @@
 			STAssertNil( subscriptionError, @"subscriptionError %@", subscriptionError);
 			STAssertEquals( pnChannels.count, channels.count, @"pnChannels.count %d, channels.count %d", pnChannels.count, channels.count);
 		}
-		else
+		else 
 			STAssertNotNil( subscriptionError, @"request must return error %@", subscriptionError);
 
 		NSTimeInterval interval = -[start timeIntervalSinceNow];
