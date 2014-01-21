@@ -44,15 +44,6 @@
                   Identifier = "HowToTests/test55RequestHistoryReverse">
                </Test>
                <Test
-                  Identifier = "W_ChaosTest">
-               </Test>
-               <Test
-                  Identifier = "OversizedJSON">
-               </Test>
-               <Test
-                  Identifier = "TimeOutTest">
-               </Test>
-               <Test
                   Identifier = "Configuration">
                </Test>
                <Test

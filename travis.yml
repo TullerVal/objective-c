@@ -1,8 +1,3 @@
-notifications:
-email:
-- tullerVal@gmail.com
-- tuller@bk.ru
-
 before_install:
 - sudo systemsetup -settimezone Europe/Zaporozhye
 
