@@ -73,6 +73,9 @@
                <Test
                   Identifier = "BadJsonTest">
                </Test>
+               <Test
+                  Identifier = "SendBigMessage">
+               </Test>
             </SkippedTests>
          </TestableReference>
       </Testables>
