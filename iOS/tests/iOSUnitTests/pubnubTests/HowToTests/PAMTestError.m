@@ -301,7 +301,7 @@
 	__block BOOL isBlockCalled = NO;
 	__block NSDate *start = [NSDate date];
 	isPNClientSubscriptionDidCompleteNotification = NO;
-	isPNClientSubscriptionDidFailNotification = NO;
+	isPNClientSubscriptionDidFailNotification = NO; 
 
 	NSLog(@"subscribeOnChannels start");
 	[PubNub subscribeOnChannels: channels withCompletionHandlingBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *subscriptionError) {
