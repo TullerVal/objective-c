@@ -64,6 +64,15 @@
                <Test
                   Identifier = "PAMTestError">
                </Test>
+               <Test
+                  Identifier = "AbbreviatedPresenceTest">
+               </Test>
+               <Test
+                  Identifier = "ApnsToken">
+               </Test>
+               <Test
+                  Identifier = "BadJsonTest">
+               </Test>
             </SkippedTests>
          </TestableReference>
       </Testables>
