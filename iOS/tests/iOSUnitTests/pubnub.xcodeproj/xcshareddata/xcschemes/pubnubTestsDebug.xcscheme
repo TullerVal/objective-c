@@ -47,15 +47,6 @@
                   Identifier = "ApnsToken">
                </Test>
                <Test
-                  Identifier = "PNBaseRequestTest">
-               </Test>
-               <Test
-                  Identifier = "PNChannelConstructor">
-               </Test>
-               <Test
-                  Identifier = "PNConnectionTest">
-               </Test>
-               <Test
                   Identifier = "PNHereNowRequestTest">
                </Test>
                <Test
@@ -128,9 +119,6 @@
                   Identifier = "PNSubscribeUnsubscribeTest">
                </Test>
                <Test
-                  Identifier = "PNConnectionChannelTest">
-               </Test>
-               <Test
                   Identifier = "PNCryptoHelperTest">
                </Test>
                <Test
@@ -144,6 +132,9 @@
                </Test>
                <Test
                   Identifier = "Configuration">
+               </Test>
+               <Test
+                  Identifier = "PAMTestError">
                </Test>
             </SkippedTests>
          </TestableReference>
