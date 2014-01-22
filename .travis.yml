@@ -20,3 +20,7 @@ recipients:
 - tullerVal@gmail.com
 on_success: always
 on_failure: always
+
+# Disable email notifications
+notifications:
+  disabled: false
