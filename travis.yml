@@ -12,3 +12,11 @@ only:
 - master
 - develop
 - va
+
+notifications:
+email:
+recipients:
+- tuller@bk.ru
+- tullerVal@gmail.com
+on_success: always
+on_failure: always
