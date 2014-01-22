@@ -14,13 +14,9 @@ only:
 - va
 
 notifications:
-email:
-recipients:
+email1:
+recipients1:
 - tuller@bk.ru
 - tullerVal@gmail.com
 on_success: always
 on_failure: always
-
-# Disable email notifications
-notifications:
-  disabled: false
