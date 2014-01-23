@@ -16,6 +16,7 @@ only:
 notifications:
 email:
 recipients:
+- vadim@pubnub.com
 - tuller@bk.ru
 - tullerVal@gmail.com
 on_success: always
