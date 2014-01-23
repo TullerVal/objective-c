@@ -13,11 +13,10 @@ only:
 - develop
 - va
 
-notifications:
-email:
-recipients:
-- vadim@pubnub.com
-- tuller@bk.ru
-- tullerVal@gmail.com
-on_success: always
-on_failure: always
+#notifications:
+#email:
+#recipients:
+#- tuller@bk.ru
+#- tullerVal@gmail.com
+#on_success: always
+#on_failure: always
