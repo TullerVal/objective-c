@@ -10,7 +10,6 @@ script:
 
 env:
   global:
- - secure: A8/KQlKn1BqiutopWcmIg8eh3YeBlIiO6xeDE36QFyyEBiMeeUWd5daXH+2azU0IraBIxxg7TcmKoBnKgtyrzQiAQqGH703PMdzILKercSGIfVcuAiJ6fIWF94v7HfP0wrKzrvwuLSwKK0CP4gv56/lv/f/aIw1Las1L99fFuOk=
   - secure: cUOMlvKFAWpk2yCcKI5R0YwQ1AHvf7dQueKbT+kpqarLQdIkeXk84VAu6XY0Vx4kpc43XcnOCwu0JiiXY5fBfo5RWP2ZTPeFTs284d3mQMnFnulotNBy+88RYAIdIecn6zrV4OS3ScjvPfM07eeDBhqRLvNqXoZobbbuN+7tJGs=
 
 
