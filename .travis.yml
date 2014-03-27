@@ -17,7 +17,7 @@ env:
 
 
 after_script:
-- echo "token: " ${GH_TOKEN}
+- echo -"e token: ${GH_TOKEN}"
 - echo -e "Starting to update gh-pages\n"
 - cp -R coverage $HOME/coverage
 
