@@ -1,0 +1,9 @@
+language: objective-c
+xcode_project: iOS/iPadDemoApp/pubnub.xcodeproj
+xcode_scheme: pubnub
+env:
+  global:
+    secure: A8/KQlKn1BqiutopWcmIg8eh3YeBlIiO6xeDE36QFyyEBiMeeUWd5daXH+2azU0IraBIxxg7TcmKoBnKgtyrzQiAQqGH703PMdzILKercSGIfVcuAiJ6fIWF94v7HfP0wrKzrvwuLSwKK0CP4gv56/lv/f/aIw1Las1L99fFuOk=
+
+
+after_success: ./update-gh-pages.sh
