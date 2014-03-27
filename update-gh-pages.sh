@@ -9,7 +9,7 @@
   git config --global user.name "TullerVal"
 
   #using token clone gh-pages branch
-  git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/TullerVal/SharedTravisLogs.git gh-pages > /dev/null
+  git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/TullerVal/SharedTravisLogs.git gh-pages > 
 
   #go into diractory and copy data we're interested in to that directory
   cd gh-pages
@@ -18,6 +18,6 @@
   #add, commit and push files
   git add -f .
   git commit -m "Travis build $TRAVIS_BUILD_NUMBER pushed to gh-pages"
-  git push -fq origin gh-pages > /dev/null
+  git push -fq origin gh-pages
 
   echo -e "Done magic with coverage\n"
