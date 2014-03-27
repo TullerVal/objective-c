@@ -10,7 +10,8 @@ script:
 
 env:
   global:
-    secure: A8/KQlKn1BqiutopWcmIg8eh3YeBlIiO6xeDE36QFyyEBiMeeUWd5daXH+2azU0IraBIxxg7TcmKoBnKgtyrzQiAQqGH703PMdzILKercSGIfVcuAiJ6fIWF94v7HfP0wrKzrvwuLSwKK0CP4gv56/lv/f/aIw1Las1L99fFuOk=
+ - secure: A8/KQlKn1BqiutopWcmIg8eh3YeBlIiO6xeDE36QFyyEBiMeeUWd5daXH+2azU0IraBIxxg7TcmKoBnKgtyrzQiAQqGH703PMdzILKercSGIfVcuAiJ6fIWF94v7HfP0wrKzrvwuLSwKK0CP4gv56/lv/f/aIw1Las1L99fFuOk=
+  - secure: cUOMlvKFAWpk2yCcKI5R0YwQ1AHvf7dQueKbT+kpqarLQdIkeXk84VAu6XY0Vx4kpc43XcnOCwu0JiiXY5fBfo5RWP2ZTPeFTs284d3mQMnFnulotNBy+88RYAIdIecn6zrV4OS3ScjvPfM07eeDBhqRLvNqXoZobbbuN+7tJGs=
 
 
 # after_script: ./update-gh-pages.sh
@@ -24,7 +25,8 @@ after_script:
 - git config --global user.email "travis@travis-ci.org"
 - git config --global user.name "TullerVal"
 
-- git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/TullerVal/SharedTravisLogs.git gh-pages
+# - git clone --branch=gh-pages https://${GH_TOKEN}@github.com/TullerVal/SharedTravisLogs.git gh-pages
+- git clone --branch=gh-pages https://cf75effcf9d0ba6e5fdb3d7d6158f1a8e4054e7e@github.com/TullerVal/SharedTravisLogs.git gh-pages
 
 - cd gh-pages
 - cp -Rf $HOME/coverage/* .
