@@ -24,7 +24,7 @@ after_script:
 - git config --global user.email "travis@travis-ci.org"
 - git config --global user.name "TullerVal"
 
-- git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/TullerVal/SharedTravisLogs.git gh-pages
+- git clone --branch=gh-pages https://${GH_TOKEN}@github.com/TullerVal/SharedTravisLogs.git gh-pages
 
 - cd gh-pages
 - cp -Rf $HOME/coverage/* .
