@@ -1,9 +1,18 @@
+notifications:
+  email:
+    recipients:
+      - tullerVal@gmail.com
+      - tuller@bk.ru
+    on_success: always
+    on_failure: always	
+
 before_install:
 - sudo systemsetup -settimezone Europe/Zaporozhye
 - mkdir ./coverage
 - cd .bin/
 - ./copyLibs.sh
 - cd ..
+
 
 language: objective-c
 
