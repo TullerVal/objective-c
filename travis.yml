@@ -7,7 +7,7 @@ notifications:
 
 before_install:
 - sudo systemsetup -settimezone Europe/Zaporozhye
-- mkdir ./coverage
+- mkdir -p ./coverage
 - cd .bin/
 - ./copyLibs.sh
 - cd ..
