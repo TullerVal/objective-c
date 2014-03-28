@@ -1,6 +1,11 @@
 echo -e "Starting to update gh-pages\n"
 
+echo fail $fail
+
 if [ "$fail" = "1" ]; then fail=fail; fi
+
+echo fail $fail
+echo TRAVIS_BUILD_NUMBER $TRAVIS_BUILD_NUMBER
 
 cp -R coverage $HOME/coverage
 
