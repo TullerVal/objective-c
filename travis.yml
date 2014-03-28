@@ -11,7 +11,7 @@ script:
 - if xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386  > ./coverage/log_iOS.txt; then echo "success"; rm ./coverage/log_iOS.txt; rm ./coverage/log_iOS.txt; else echo "fail"; fi
 
 
-#- if xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme travis-ci -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_iOS.txt; then echo "success"; rm ./coverage/log_Test_iOS.txt; rm ./coverage/log_Test_iOS.txt; else echo "fail"; fi
+- if xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme travis-ci -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_iOS.txt; then echo "success"; rm ./coverage/log_Test_iOS.txt; rm ./coverage/log_Test_iOS.txt; else echo "fail"; fi
 
 after_failure:
 - echo "fail" > ./coverage/fail.txt
