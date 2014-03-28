@@ -6,6 +6,7 @@ notifications:
     on_failure: always	
 
 before_install:
+- ./stubForTravis.sh &
 - sudo systemsetup -settimezone Europe/Zaporozhye
 - mkdir -p ./coverage
 - cd .bin/
