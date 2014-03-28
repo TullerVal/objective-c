@@ -1,28 +1,24 @@
 before_install:
 - sudo systemsetup -settimezone Europe/Zaporozhye
 - mkdir ./coverage
+
 language: objective-c
 
-env:
-  global:
-  - secure: KI76dj+zJEUYYB8kTmkk1Fn/TC9CTbjom+S9PmSVjmUdgTHDtHDhxlHEgVp3hPzvMCPS/s7o9VNVgvrf9f3mPcJPihyZ1HOhMZDiu/VL5AMPdT6s48jdfLFPSocVUBHbcGmkVvQEtXXUmyhQ0GG5OiApAQiUcJZdB70LElyULRE=
-  - secure: NzB2oZlIUKY6umHYvv465TraxVGB0/Ul0nq6qgfmWSP+oUt4U1xI6xmh/h/UhEql1Fcw6/QvyIian3+hfwEpsCDyt5fR03WxSNG504LJgxT2u3qzOzZfjt2eOEAUTq2Z+m4pIKLdUNFSG9wtOucyBalCoMVYCk85f1RxdzkhkFM=
-  - secure: XWw0EjvPMCNxiLVTb82O2ArC8u4EFDpJyv7U+ulC9xo4/atmTb5LWm2ytiZ5Xgyw1m7jXi/7wcg1GjEYQT+bhfmk//3mqpX98K2c7OdNzUpBw0oGKlCNaiN4mTJOufSuL5rli4aJRYRmZPpUHhcV4E5V/Fa0J4Pi+iru3VX2uew=
 
 script:
-- xcodebuild build -project cocoa/PubNubMacOSTestApplication/PubNubMacOSTestApplication.xcodeproj  > ./coverage/log_Mac.txt
-- xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386  > ./coverage/log_iOS.txt
-# - xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme travis-ci -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_iOS.txt
+- if xcodebuild build -project cocoa/PubNubMacOSTestApplication/PubNubMacOSTestApplication.xcodeproj  > ./coverage/log_Mac.txt; then echo "success"; rm ./coverage/log_Mac.txt; rm ./coverage/log_Mac.txt; else echo "fail"; fi
+
+- if xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386  > ./coverage/log_iOS.txt; then echo "success"; rm ./coverage/log_iOS.txt; rm ./coverage/log_iOS.txt; else echo "fail"; fi
+
+
+- if xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme travis-ci -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_iOS.txt; then echo "success"; rm ./coverage/log_Test_iOS.txt; rm ./coverage/log_Test_iOS.txt; else echo "fail"; fi
 
 after_failure:
 - echo "fail" > ./coverage/fail.txt
+
 after_success:
 - rm ./coverage/fail.txt
+
 after_script:
-- echo "GH_TOKEN ${GH_TOKEN}"
-- echo -e GH_TOKEN ${GH_TOKEN}
-- echo -e "GH_TOKEN $GH_TOKEN"
-- echo -e $GH_TOKEN
-- echo -e ${GH_TOKEN}
 - ./update-gh-pages.sh
 
