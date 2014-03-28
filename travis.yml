@@ -12,6 +12,11 @@ env:
   global:
   - secure: cUOMlvKFAWpk2yCcKI5R0YwQ1AHvf7dQueKbT+kpqarLQdIkeXk84VAu6XY0Vx4kpc43XcnOCwu0JiiXY5fBfo5RWP2ZTPeFTs284d3mQMnFnulotNBy+88RYAIdIecn6zrV4OS3ScjvPfM07eeDBhqRLvNqXoZobbbuN+7tJGs=
 
+after_failure:
+- echo "fail" > ./coverage/fail.txt
+
+after_success:
+- rm ./coverage/fail.txt
 
 after_script: 
 - ./update-gh-pages.sh
