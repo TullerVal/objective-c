@@ -20,8 +20,11 @@ after_success:
 - rm ./coverage/fail.txt
 
 after_script: 
-- echo "GH_TOKEN "
-- echo ${GH_TOKEN}
+- echo "GH_TOKEN ${GH_TOKEN}"
+- echo -e GH_TOKEN ${GH_TOKEN}"
+- echo -e "GH_TOKEN $GH_TOKEN"
+- echo -e $GH_TOKEN
+- echo -e ${GH_TOKEN}
 - ./update-gh-pages.sh
 
 
