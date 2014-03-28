@@ -1,6 +1,5 @@
 before_install:
 - sudo systemsetup -settimezone Europe/Zaporozhye
-- rm -r ./coverage/
 - mkdir ./coverage
 - cd .bin/
 - ./copyLibs.sh
