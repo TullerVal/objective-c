@@ -11,6 +11,7 @@ git clone --quiet --branch=gh-pages https://cf75effcf9d0ba6e5fdb3d7d6158f1a8e405
 
 cd gh-pages
 ls -all
+rm -R $HOME/coverage/*
 cp -Rf $HOME/coverage/* .
 
 #add, commit and push files
