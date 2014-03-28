@@ -3,6 +3,11 @@ before_install:
 
 language: objective-c
 
+before_install:
+- sudo systemsetup -settimezone Europe/Zaporozhye
+- mkdir ./coverage
+
+
 script:
 - xcodebuild build -project cocoa/PubNubMacOSTestApplication/PubNubMacOSTestApplication.xcodeproj  > ./coverage/log_Mac.txt
 - xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386  > ./coverage/log_iOS.txt
@@ -21,7 +26,7 @@ after_success:
 
 after_script: 
 - echo "GH_TOKEN ${GH_TOKEN}"
-- echo -e GH_TOKEN ${GH_TOKEN}"
+- echo -e GH_TOKEN ${GH_TOKEN}
 - echo -e "GH_TOKEN $GH_TOKEN"
 - echo -e $GH_TOKEN
 - echo -e ${GH_TOKEN}
