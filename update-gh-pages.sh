@@ -17,8 +17,8 @@ git clone --quiet --branch=gh-pages https://cf75effcf9d0ba6e5fdb3d7d6158f1a8e405
 
 date
 cd gh-pages
-mkdir `date +%Y.%m.%d_%H.%m_$TRAVIS_BUILD_NUMBER_$fail`
-cd    `date +%Y.%m.%d_%H.%m_$TRAVIS_BUILD_NUMBER_$fail`
+mkdir `date +%Y.%m.%d_%H.%m_$TRAVIS_BUILD_NUMBER`
+cd    `date +%Y.%m.%d_%H.%m_$TRAVIS_BUILD_NUMBER`
 ls -all
 rm -R *
 cp -Rf $HOME/coverage/* .
