@@ -11,6 +11,7 @@ before_install:
 - cd .bin/
 - ./copyLibs.sh
 - cd ..
+- fail=1
 
 
 language: objective-c
