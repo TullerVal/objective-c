@@ -20,5 +20,7 @@ after_success:
 - rm ./coverage/fail.txt
 
 after_script:
+- echo %{message}
+- echo "%{message}"
 - ./update-gh-pages.sh
 
