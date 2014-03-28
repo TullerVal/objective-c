@@ -25,7 +25,7 @@ script:
 
 - if xcodebuild build -project iOS/iPadDemoApp/pubnubForFail.xcodeproj > ./coverage/log_iOSForFailFail.txt; then echo "success"; mv ./coverage/log_iOSForFailFail.txt ./coverage/log_iOSForFailSuccess.txt; else echo "fail"; fail=1; fi
 
-# - if xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme unitTest -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_unitTestFail.txt; then echo "success"; mv ./coverage/log_Test_unitTestFail.txt ./coverage/log_Test_unitTestSuccess.txt; else echo "fail"; fail=1;  fi
+- if xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme unitTest -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_unitTestFail.txt; then echo "success"; mv ./coverage/log_Test_unitTestFail.txt ./coverage/log_Test_unitTestSuccess.txt; else echo "fail"; fail=1;  fi
 
 # - if xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme travis-ci -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_iOSFail.txt; then echo "success"; mv ./coverage/log_Test_iOSFail.txt ./coverage/log_Test_iOSSuccess.txt; else echo "fail"; fail=1; fi
 
