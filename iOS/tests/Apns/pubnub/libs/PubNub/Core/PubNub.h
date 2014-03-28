@@ -31,7 +31,7 @@
  @warning While \b PubNub client not configured (\a +setConfiguration:) and not connected (\a +connect) all requests will be
  completed with error.
  
- @author PubNub
+ @author Sergey Mamontov
  @version 3.5.1
  @copyright © 2009-13 PubNub Inc.
  */
@@ -311,7 +311,6 @@
  - (void)pubnubClient:(PubNub *)client didDisconnectFromOrigin:(NSString *)origin withError:(PNError *)error {
  
      // PubNub client disconnected from the server because of error and we should update interface to let user know and do something to recover 
-     // from this situation.
      // from this situation.
      //
      // Always check error.code to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
@@ -699,6 +698,111 @@
 + (NSString *)clientIdentifier;
 
 
+#pragma mark - Client state management
+
+/**
+ Retrieve client state information from \b PubNub service.
+
+ @param clientIdentifier
+ Client identifier for which \b PubNub client should retrieve state.
+
+ @param channel
+ \b PNChannel instance from which client's state should be pulled out.
+
+ @since 3.6.0
+ */
++ (void)requestClientState:(NSString *)clientIdentifier forChannel:(PNChannel *)channel;
+
+/**
+ Retrieve client state information from \b PubNub service.
+
+ @code
+ @endcode
+ This method extends \a +requestClientState:forChannel: and allow to specify state retrieval process handling
+ block.
+
+ @param clientIdentifier
+ Client identifier for which \b PubNub client should retrieve state.
+
+ @param channel
+ \b PNChannel instance from which client's state should be pulled out.
+
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as client state retrieval process operation will be
+ completed. The block takes three arguments:
+ \c clientIdentifier - identifier for which \b PubNub client search for channels;
+ \c state - is \b PNDictionary instance which store state previously bounded to the client at specified channel;
+ \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
+
+ @since 3.6.0
+ */
++ (void) requestClientState:(NSString *)clientIdentifier forChannel:(PNChannel *)channel
+withCompletionHandlingBlock:(PNClientStateRetrieveHandlingBlock)handlerBlock;
+
+/**
+ Update client state information.
+
+ @param clientIdentifier
+ Client identifier for which \b PubNub client should bound state.
+
+ @param clientState
+ \b NSDictionary instance with list of parameters which should be bound to the client.
+
+ @param channel
+ \b PNChannel instance for which client's state should be bound.
+
+ @note You can delete previously configured key from state by passing [NSNull null] as value for target key and \b
+  PubNub service will remove specified key from client's state at specified channel.
+
+ @warning Client state shouldn't contain any nesting and values should be one of: int, float or string.
+
+ @since 3.6.0
+ */
++ (void)updateClientState:(NSString *)clientIdentifier state:(NSDictionary *)clientState
+               forChannel:(PNChannel *)channel;
+
+/**
+ Update client state information.
+
+ @code
+ @endcode
+ This method extends \a +updateClientState:state:forChannel: and allow to specify state update process
+ handling block.
+
+ @param clientIdentifier
+ Client identifier for which \b PubNub client should bound state.
+
+ @param clientState
+ \b NSDictionary instance with list of parameters which should be bound to the client.
+
+ @param channel
+ \b PNChannel instance for which client's state should be bound.
+
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as client state update process operation will be
+ completed. The block takes three arguments:
+ \c clientIdentifier - identifier for which \b PubNub client search for channels;
+ \c channels - is list of \b PNChannel instances in which \c clientIdentifier has been found as subscriber; \c error -
+ describes what exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @note You can delete previously configured key from state by passing [NSNull null] as value for target key and \b
+  PubNub service will remove specified key from client's state at specified channel.
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
+
+ @warning Client state shouldn't contain any nesting and values should be one of: int, float or string.
+
+ @since 3.6.0
+ */
++ (void)   updateClientState:(NSString *)clientIdentifier state:(NSDictionary *)clientState
+                  forChannel:(PNChannel *)channel
+ withCompletionHandlingBlock:(PNClientStateUpdateHandlingBlock)handlerBlock;
+
+
 #pragma mark - Channels subscription management
 
 /**
@@ -982,6 +1086,230 @@
 + (void)subscribeOnChannel:(PNChannel *)channel withCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock;
 
 /**
+ Subscribe client to one more channel. By default this method will trigger presence event by sending \a 'leave' presence event to channels on
+ which \b PubNub client already subscribed and then re-subscribe generating \a 'join' presence event.
+
+ @code
+ @endcode
+ This method extends \a +subscribeOnChannel: and allow to specify client specific state.
+
+ @code
+ @endcode
+ \b Example:
+
+ @code
+ [PubNub setConfiguration:[PNConfiguration defaultConfiguration] andDelegate:self];
+ [PubNub connect];
+ [PubNub subscribeOnChannel:[PNChannel channelsWithName:@"iosdev"]
+            withClientState:@{@"firstName":@"John", @"lastName":@"Appleseed", @"age":@(240)}];
+ @endcode
+
+ And handle it with delegates:
+ @code
+ - (void)pubnubClient:(PubNub *)client didSubscribeOnChannels:(NSArray *)channels {
+
+     // PubNub client subscribed on specified set of channels.
+ }
+
+ - (void)pubnubClient:(PubNub *)client subscriptionDidFailWithError:(NSError *)error {
+
+     // PubNub client did fail to subscribe on requested set of channels.
+     //
+     // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+     // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+     // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+     // subscribe.
+ }
+ @endcode
+
+ There is also way to observe subscription process state from any place in your application using  \b PNObservationCenter:
+ @code
+ [[PNObservationCenter defaultCenter] addClientChannelSubscriptionStateObserver:self
+  withCallbackBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *error) {
+
+     switch (state) {
+         case PNSubscriptionProcessNotSubscribedState:
+
+             // There should be a reason because of which subscription failed and it can be found in 'error' instance.
+             //
+             // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+             // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+             // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+             // subscribe.
+             break;
+         case PNSubscriptionProcessSubscribedState:
+
+             // PubNub client completed subscription on specified set of channels.
+             break;
+         case PNSubscriptionProcessWillRestoreState:
+
+             // PubNub client is about to restore subscription on specified set of channels.
+             break;
+         case PNSubscriptionProcessRestoredState:
+
+             // PubNub client completed subscription restore process
+             break;
+     }
+ }];
+ @endcode
+
+ Also observation can be done using \b NSNotificationCenter to observe this notifications: kPNClientSubscriptionDidCompleteNotification,
+ kPNClientSubscriptionWillRestoreNotification, kPNClientSubscriptionDidRestoreNotification, kPNClientSubscriptionDidFailNotification.
+
+ @param channel
+ \b PNChannel instance on which client should subscribe.
+
+ @param clientState
+ \b NSDictionary instance with list of parameters which should be bound to the client.
+
+ @note You can delete previously configured key from state by passing [NSNull null] as value for target key and \b
+  PubNub service will remove specified key from client's state at specified channel.
+
+ @warning Client state shouldn't contain any nesting and values should be one of: int, float or string.
+
+ @warning If you already subscribed on channel (for which already specified state) and will subscribe to another
+ one, it will override old state (if keys are the same or will add new keys into old one).
+
+ @since 3.6.0
+
+ @see PNChannel class
+
+ @see PNError class
+
+ @see PNObservationCenter class
+
+ @see +subscribeOnChannel:withCompletionHandlingBlock:
+ */
++ (void)subscribeOnChannel:(PNChannel *)channel withClientState:(NSDictionary *)clientState;
+
+/**
+ Subscribe client to one more channel. By default this method will trigger presence event by sending \a 'leave' presence event to channels on which
+ client already subscribed and then re-subscribe generating \a 'join' presence event.
+
+ @code
+ @endcode
+ This method extends \a +subscribeOnChannel:withClientState: and allow to specify subscription process state change handler
+ block.
+
+ @code
+ @endcode
+ \b Example:
+
+ @code
+ [PubNub setConfiguration:[PNConfiguration defaultConfiguration] andDelegate:self];
+ [PubNub connect];
+ [PubNub subscribeOnChannel:[PNChannel channelsWithName:@"iosdev"]
+            withClientState:@{@"firstName":@"John", @"lastName":@"Appleseed", @"age":@(240)}
+ andCompletionHandlingBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *subscriptionError) {
+
+      switch (state) {
+          case PNSubscriptionProcessNotSubscribedState:
+
+              // There should be a reason because of which subscription failed and it can be found in 'error' instance.
+              //
+              // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+              // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+              // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+              // subscribe.
+              break;
+          case PNSubscriptionProcessSubscribedState:
+
+              // PubNub client completed subscription on specified set of channels.
+              break;
+      }
+ }];
+ @endcode
+
+ And handle it with delegates:
+ @code
+ - (void)pubnubClient:(PubNub *)client didSubscribeOnChannels:(NSArray *)channels {
+
+     // PubNub client subscribed on specified set of channels.
+ }
+
+ - (void)pubnubClient:(PubNub *)client subscriptionDidFailWithError:(NSError *)error {
+
+     // PubNub client did fail to subscribe on requested set of channels.
+     //
+     // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+     // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+     // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+     // subscribe.
+ }
+ @endcode
+
+ There is also way to observe subscription process state from any place in your application using  \b PNObservationCenter:
+ @code
+ [[PNObservationCenter defaultCenter] addClientChannelSubscriptionStateObserver:self
+  withCallbackBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *error) {
+
+      switch (state) {
+          case PNSubscriptionProcessNotSubscribedState:
+
+              // There should be a reason because of which subscription failed and it can be found in 'error' instance.
+              //
+              // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+              // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+              // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+              // subscribe.
+              break;
+          case PNSubscriptionProcessSubscribedState:
+
+              // PubNub client completed subscription on specified set of channels.
+              break;
+          case PNSubscriptionProcessWillRestoreState:
+
+              // PubNub client is about to restore subscription on specified set of channels.
+              break;
+          case PNSubscriptionProcessRestoredState:
+
+              // PubNub client completed subscription restore process.
+              break;
+      }
+ }];
+ @endcode
+
+ Also observation can be done using \b NSNotificationCenter to observe this notifications: kPNClientSubscriptionDidCompleteNotification,
+ kPNClientSubscriptionWillRestoreNotification, kPNClientSubscriptionDidRestoreNotification, kPNClientSubscriptionDidFailNotification.
+
+ @param channel
+ \b PNChannel instance on which client should subscribe.
+
+ @param clientState
+ \b NSDictionary instance with list of parameters which should be bound to the client.
+
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as subscription process state will change. The block takes three arguments:
+ \c state - is \b PNSubscriptionProcessState enumerator field which describes current subscription state; \c channels - array of \b PNChannel instances for which
+ subscription process changed state; \c error - error because of which subscription failed. Always check \a error.code to find out what caused error
+ (check \b PNErrorCodes header file and use \a -localizedDescription / \a -localizedFailureReason and \a -localizedRecoverySuggestion to get human
+ readable description for error).
+
+ @note You can delete previously configured key from state by passing [NSNull null] as value for target key and \b
+  PubNub service will remove specified key from client's state at specified channel.
+
+ @warning Only last call of this method will call completion block. If you need to track subscribe process from many places, use \b PNObservationCenter
+ methods for this purpose.
+
+ @warning Client state shouldn't contain any nesting and values should be one of: int, float or string.
+
+ @warning If you already subscribed on channel (for which already specified state) and will subscribe to another
+ one, it will override old state (if keys are the same or will add new keys into old one).
+
+ @since 3.6.0
+
+ @see PNChannel class
+
+ @see PNError class
+
+ @see PNObservationCenter class
+
+ @sse +subscribeOnChannel:
+ */
++ (void) subscribeOnChannel:(PNChannel *)channel withClientState:(NSDictionary *)clientState
+ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock;
+
+/**
  Subscribe client to one more channel.
  
  @code
@@ -1070,7 +1398,7 @@
  
  @see +subscribeOnChannel:withPresenceEvent:andCompletionHandlingBlock:
  */
-+ (void)subscribeOnChannel:(PNChannel *)channel withPresenceEvent:(BOOL)withPresenceEvent;
++ (void)subscribeOnChannel:(PNChannel *)channel withPresenceEvent:(BOOL __unused)withPresenceEvent DEPRECATED_MSG_ATTRIBUTE(" Use '+subscribeOnChannel:' instead.");
 
 /**
  Subscribe client to one more channel.
@@ -1189,8 +1517,8 @@
  
  @see +subscribeOnChannel:withPresenceEvent:
  */
-+ (void)subscribeOnChannel:(PNChannel *)channel withPresenceEvent:(BOOL)withPresenceEvent
-andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock;
++ (void)subscribeOnChannel:(PNChannel *)channel withPresenceEvent:(BOOL __unused)withPresenceEvent
+andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock DEPRECATED_MSG_ATTRIBUTE(" Use '+subscribeOnChannel:withCompletionHandlingBlock:' instead.");
 
 /**
  Subscribe client to the set of new channels. By default this method will trigger presence event by sending \a 'leave' presence to channels on which
@@ -1390,6 +1718,232 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 + (void)subscribeOnChannels:(NSArray *)channels withCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock;
 
 /**
+ Subscribe client to the set of new channels. By default this method will trigger presence event by sending \a 'leave' presence to channels on which
+ client already connected and then re-subscribe generating \a 'join' presence event.
+
+ @code
+ @endcode
+ This method extends \a +subscribeOnChannels: and allow to specify client specific state.
+
+ @code
+ @endcode
+ \b Example:
+
+ @code
+ [PubNub setConfiguration:[PNConfiguration defaultConfiguration] andDelegate:self];
+ [PubNub connect];
+ [PubNub subscribeOnChannels:[PNChannel channelsWithNames:@[@"iosdev", @"macosdev"]]
+             withClientState:@{@"iosdev": @{@"firstName":@"John", @"lastName":@"Appleseed", @"age":@(240)}, @"macosdev": @{@"type": @"developer", @"fullAccess": @(NO)}}];
+ @endcode
+
+ And handle it with delegates:
+ @code
+ - (void)pubnubClient:(PubNub *)client didSubscribeOnChannels:(NSArray *)channels {
+
+     // PubNub client subscribed on specified set of channels.
+ }
+
+ - (void)pubnubClient:(PubNub *)client subscriptionDidFailWithError:(NSError *)error {
+
+     // PubNub client did fail to subscribe on requested set of channels.
+     //
+     // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+     // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+     // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+     // subscribe.
+ }
+ @endcode
+
+ There is also way to observe subscription process state from any place in your application using  \b PNObservationCenter:
+ @code
+ [[PNObservationCenter defaultCenter] addClientChannelSubscriptionStateObserver:self
+  withCallbackBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *error) {
+
+      switch (state) {
+          case PNSubscriptionProcessNotSubscribedState:
+
+              // There should be a reason because of which subscription failed and it can be found in 'error' instance.
+              //
+              // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+              // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+              // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+              // subscribe.
+              break;
+          case PNSubscriptionProcessSubscribedState:
+
+              // PubNub client completed subscription on specified set of channels.
+              break;
+          case PNSubscriptionProcessWillRestoreState:
+
+              // PubNub client is about to restore subscription on specified set of channels.
+              break;
+          case PNSubscriptionProcessRestoredState:
+
+              // PubNub client completed subscription restore process.
+              break;
+      }
+ }];
+ @endcode
+
+ Also observation can be done using \b NSNotificationCenter to observe this notifications: kPNClientSubscriptionDidCompleteNotification,
+ kPNClientSubscriptionWillRestoreNotification, kPNClientSubscriptionDidRestoreNotification, kPNClientSubscriptionDidFailNotification.
+
+ @param channels
+ Array of \b PNChannel instances on which client should subscribe.
+
+ @param clientState
+ \b NSDictionary instance with list of parameters which should be bound to the client.
+
+ @note You can delete previously configured key from state by passing [NSNull null] as value for target key and \b
+  PubNub service will remove specified key from client's state at specified channel.
+
+ @warning Client state should be represented with dictionary with channel names as keys and channel state as values. Channel state shouldn't contain any nesting and values should be one of: int, float or string. As keys should be used \b only channel names on which you are subscribing or already subscribed.
+
+ @warning If you already subscribed on channel (for which already specified state) and will subscribe to another
+ one, it will override old state (if keys are the same or will add new keys into old one).
+
+ @since 3.6.0
+
+ @see PNChannel class
+
+ @see PNError class
+
+ @see PNObservationCenter class
+
+ @see +subscribeOnChannels:withCompletionHandlingBlock:
+ */
++ (void)subscribeOnChannels:(NSArray *)channels withClientState:(NSDictionary *)clientState;
+
+/**
+ Subscribe client to the set of new channels. By default this method will trigger presence event by sending \a 'leave' presence event to channels
+ on which client already connected and then re-subscribe generating \a 'join' presence event.
+
+ @code
+ @endcode
+ This method extends \a +subscribeOnChannels:withClientState: and allow to specify subscription process state change handler block.
+
+ @code
+ @endcode
+ \b Example:
+
+ @code
+ [PubNub setConfiguration:[PNConfiguration defaultConfiguration] andDelegate:self];
+ [PubNub connect];
+ [PubNub subscribeOnChannels:[PNChannel channelsWithNames:@[@"iosdev", @"macosdev"]]
+             withClientState:@{@"iosdev": @{@"firstName":@"John", @"lastName":@"Appleseed", @"age":@(240)}, @"macosdev": @{@"type": @"developer", @"fullAccess": @(NO)}}
+  andCompletionHandlingBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *subscriptionError) {
+
+      switch (state) {
+          case PNSubscriptionProcessNotSubscribedState:
+
+              // There should be a reason because of which subscription failed and it can be found in 'error' instance
+              // Update user interface to let user know that something went wrong and do something to recover from this state.
+              //
+              // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+              // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+              // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+              // subscribe.
+              break;
+          case PNSubscriptionProcessSubscribedState:
+
+              // PubNub client completed subscription on specified set of channels.
+              break;
+          default:
+              break;
+     }
+ }];
+ @endcode
+
+ And handle it with delegates:
+ @code
+ - (void)pubnubClient:(PubNub *)client didSubscribeOnChannels:(NSArray *)channels {
+
+     // PubNub client subscribed on specified set of channels.
+ }
+
+ - (void)pubnubClient:(PubNub *)client subscriptionDidFailWithError:(NSError *)error {
+
+     // PubNub client did fail to subscribe on requested set of channels.
+     //
+     // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+     // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+     // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+     // subscribe.
+ }
+ @endcode
+
+ There is also way to observe subscription process state from any place in your application using  \b PNObservationCenter:
+ @code
+ [[PNObservationCenter defaultCenter] addClientChannelSubscriptionStateObserver:self
+  withCallbackBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *error) {
+
+      switch (state) {
+          case PNSubscriptionProcessNotSubscribedState:
+
+              // There should be a reason because of which subscription failed and it can be found in 'error' instance.
+              //
+              // Always check 'error.code' to find out what caused error (check PNErrorCodes header file and use -localizedDescription /
+              // -localizedFailureReason and -localizedRecoverySuggestion to get human readable description for error).
+              // 'error.associatedObject' contains array of PNChannel instances on which PubNub client was unable to
+              // subscribe.
+              break;
+          case PNSubscriptionProcessSubscribedState:
+
+              // PubNub client completed subscription on specified set of channels.
+              break;
+          case PNSubscriptionProcessWillRestoreState:
+
+              // PubNub client is about to restore subscription on specified set of channels.
+              break;
+          case PNSubscriptionProcessRestoredState:
+
+              // PubNub client completed subscription restore process.
+              break;
+      }
+ }];
+ @endcode
+
+ Also observation can be done using \b NSNotificationCenter to observe this notifications: kPNClientSubscriptionDidCompleteNotification,
+ kPNClientSubscriptionWillRestoreNotification, kPNClientSubscriptionDidRestoreNotification, kPNClientSubscriptionDidFailNotification.
+
+ @param channels
+ Array of \b PNChannel instances on which client should subscribe.
+
+ @param clientState
+ \b NSDictionary instance with list of parameters which should be bound to the client.
+
+ @param handlerBlock
+ The block which will be called by PubNub client as soon as subscription process state will change. The block takes three arguments:
+ \c state - is \b PNSubscriptionProcessState enumerator field which describes current subscription state; \c channels - array of channels for which
+ subscription process changed state; \c error - error because of which subscription failed. Always check \a error.code to find out what caused
+ error (check PNErrorCodes header file and use \a -localizedDescription / \a -localizedFailureReason and \a -localizedRecoverySuggestion to get
+ human readable description for error).
+
+ @note You can delete previously configured key from state by passing [NSNull null] as value for target key and \b
+  PubNub service will remove specified key from client's state at specified channel.
+
+ @warning Only last call of this method will call completion block. If you need to track subscribe process from many places,
+ use \b PNObservationCenter methods for this purpose.
+ 
+ @warning Client state should be represented with dictionary with channel names as keys and channel state as values. Channel state shouldn't contain any nesting and values should be one of: int, float or string. As keys should be used \b only channel names on which you are subscribing or already subscribed.
+
+ @warning If you already subscribed on channel (for which already specified state) and will subscribe to another
+ one, it will override old state (if keys are the same or will add new keys into old one).
+
+ @since 3.4.0
+
+ @see PNChannel class
+
+ @see PNError class
+
+ @see PNObservationCenter class
+
+ @see +subscribeOnChannels:
+ */
++ (void)subscribeOnChannels:(NSArray *)channels withClientState:(NSDictionary *)clientState
+ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock;
+
+/**
  Subscribe client to the set of new channels.
  
  @code
@@ -1478,7 +2032,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  
  @see +subscribeOnChannels:withPresenceEvent:andCompletionHandlingBlock:
  */
-+ (void)subscribeOnChannels:(NSArray *)channels withPresenceEvent:(BOOL)withPresenceEvent;
++ (void)subscribeOnChannels:(NSArray *)channels withPresenceEvent:(BOOL __unused)withPresenceEvent DEPRECATED_MSG_ATTRIBUTE(" Use '+subscribeOnChannels:' instead.");
 
 /**
  Subscribe client to the set of new channels.
@@ -1597,8 +2151,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  
  @see +subscribeOnChannels:withPresenceEvent:
  */
-+ (void)subscribeOnChannels:(NSArray *)channels withPresenceEvent:(BOOL)withPresenceEvent
- andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock;
++ (void)subscribeOnChannels:(NSArray *)channels withPresenceEvent:(BOOL __unused)withPresenceEvent
+ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock DEPRECATED_MSG_ATTRIBUTE(" Use '+subscribeOnChannels:withCompletionHandlingBlock:' instead.");
 
 /**
  Unsubscribe client from one channel. By default this method will trigger presence event by sending \a 'leave' presence event to channels on
@@ -1847,7 +2401,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  
  @see +unsubscribeFromChannel:withPresenceEvent:withCompletionHandlingBlock:
  */
-+ (void)unsubscribeFromChannel:(PNChannel *)channel withPresenceEvent:(BOOL)withPresenceEvent;
++ (void)unsubscribeFromChannel:(PNChannel *)channel withPresenceEvent:(BOOL __unused)withPresenceEvent DEPRECATED_MSG_ATTRIBUTE(" Use '+unsubscribeFromChannel:' instead.");
 
 /**
  Unsubscribe client from one channel.
@@ -1948,8 +2502,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  
  @see +unsubscribeFromChannel:withPresenceEvent:
  */
-+ (void)unsubscribeFromChannel:(PNChannel *)channel withPresenceEvent:(BOOL)withPresenceEvent
-    andCompletionHandlingBlock:(PNClientChannelUnsubscriptionHandlerBlock)handlerBlock;
++ (void)unsubscribeFromChannel:(PNChannel *)channel withPresenceEvent:(BOOL __unused)withPresenceEvent
+    andCompletionHandlingBlock:(PNClientChannelUnsubscriptionHandlerBlock)handlerBlock DEPRECATED_MSG_ATTRIBUTE(" Use '+unsubscribeFromChannel:withCompletionHandlingBlock:' instead.");
 
 /**
  Unsubscribe client from set of channels. By default this method will trigger presence event by sending \a 'leave' presence event to channels on
@@ -2178,7 +2732,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  
  @see +unsubscribeFromChannels:withPresenceEvent:withCompletionHandlingBlock:
  */
-+ (void)unsubscribeFromChannels:(NSArray *)channels withPresenceEvent:(BOOL)withPresenceEvent;
++ (void)unsubscribeFromChannels:(NSArray *)channels withPresenceEvent:(BOOL __unused)withPresenceEvent DEPRECATED_MSG_ATTRIBUTE(" Use '+unsubscribeFromChannels:' instead.");
 
 /**
  Unsubscribe client from set of channels.
@@ -2264,8 +2818,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  
  @see +unsubscribeFromChannels:withPresenceEvent:
  */
-+ (void)unsubscribeFromChannels:(NSArray *)channels withPresenceEvent:(BOOL)withPresenceEvent
-     andCompletionHandlingBlock:(PNClientChannelUnsubscriptionHandlerBlock)handlerBlock;
++ (void)unsubscribeFromChannels:(NSArray *)channels withPresenceEvent:(BOOL __unused)withPresenceEvent
+     andCompletionHandlingBlock:(PNClientChannelUnsubscriptionHandlerBlock)handlerBlock DEPRECATED_MSG_ATTRIBUTE(" Use '+unsubscribeFromChannels:withCompletionHandlingBlock:' instead.");
 
 
 #pragma mark - APNS management
@@ -3790,7 +4344,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'application' access level.
@@ -3818,7 +4372,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantReadAccessRightForApplicationAtPeriod:(NSUInteger)accessPeriodDuration;
++ (void)grantReadAccessRightForApplicationAtPeriod:(NSInteger)accessPeriodDuration;
 
 /**
  Grant \a 'read' access right on \a 'application' access level which will be valid for specified amount of time.
@@ -3907,7 +4461,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'application' access level.
@@ -3943,7 +4497,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantReadAccessRightForApplicationAtPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantReadAccessRightForApplicationAtPeriod:(NSInteger)accessPeriodDuration
                         andCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
 /**
@@ -4012,7 +4566,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'write' access right and revoke \a 'read' access right for
  \a 'application' access level.
@@ -4040,7 +4594,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantWriteAccessRightForApplicationAtPeriod:(NSUInteger)accessPeriodDuration;
++ (void)grantWriteAccessRightForApplicationAtPeriod:(NSInteger)accessPeriodDuration;
 
 /**
  Grant \a 'write' access right on \a 'application' access level which will be valid for specified amount of time.
@@ -4129,7 +4683,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'write' access right and revoke \a 'read' access right for
  \a 'application' access level.
@@ -4165,7 +4719,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantWriteAccessRightForApplicationAtPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantWriteAccessRightForApplicationAtPeriod:(NSInteger)accessPeriodDuration
                          andCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
 /**
@@ -4233,7 +4787,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @warning \a 'application' access level is top-layer of access tree. If any of child access levels (\a 'channel' or
  \a 'user') grant only one of \a 'read' or \a 'write' access rights, \b PubNub client will ignore them and provide
@@ -4258,7 +4812,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantAllAccessRightsForApplicationAtPeriod:(NSUInteger)accessPeriodDuration;
++ (void)grantAllAccessRightsForApplicationAtPeriod:(NSInteger)accessPeriodDuration;
 
 /**
  Grant \a 'read'/ \a 'write' access rights on \a 'application' access level which will be valid for specified amount of time.
@@ -4345,7 +4899,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @warning \a 'application' access level is top-layer of access tree. If any of child access levels (\a 'channel' or
  \a 'user') grant only one of \a 'read' or \a 'write' access rights, \b PubNub client will ignore them and provide
@@ -4378,7 +4932,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantAllAccessRightsForApplicationAtPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantAllAccessRightsForApplicationAtPeriod:(NSInteger)accessPeriodDuration
                         andCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
 /**
@@ -4580,7 +5134,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow message posting to \a 'iosdev' channel for \b 10 minutes. 
- But despite tha fact that \a 'iosdev' channel access rights allow only subscription, \b PubNub client allowed to post 
+ But despite the fact that \a 'iosdev' channel access rights allow only subscription, \b PubNub client allowed to post
  messages to any channels because of upper-layer configuration (\a 'application' access level allow message posting to any 
  channels for \b 10 minutes).
 
@@ -4629,7 +5183,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'channel' access level.
@@ -4660,7 +5214,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForApplicationAtPeriod:
  */
-+ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration;
++ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration;
 
 /**
  Grant \a 'read' access right on \a 'channel' access level which will be valid for specified amount of time.
@@ -4699,7 +5253,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow message posting to \a 'iosdev' channel for \b 10 minutes. 
- But despite tha fact that \a 'iosdev' channel access rights allow only subscription, \b PubNub client allowed to post 
+ But despite the fact that \a 'iosdev' channel access rights allow only subscription, \b PubNub client allowed to post
  messages to any channels because of upper-layer configuration (\a 'application' access level allow message posting to any 
  channels for \b 10 minutes).
 
@@ -4748,7 +5302,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'channel' access level.
@@ -4786,7 +5340,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForApplicationAtPeriod:
  */
-+ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
            withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
 /**
@@ -4806,8 +5360,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow message posting for client with \a 'spectator' authorization key 
- into \a 'iosdev' channel for \b 10 minutes. But despite tha fact that \a 'iosdev' channel access rights allow only subscription for \a 'spectator', 
- \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'channel' access level allow message
+ into \a 'iosdev' channel for \b 10 minutes. But despite the fact that \a 'iosdev' channel access rights allow only
+ subscription for \a 'spectator', \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'channel' access level allow message
  posting to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -4855,7 +5409,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'user' access level.
@@ -4891,7 +5445,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                 client:(NSString *)clientAuthorizationKey;
 
 /**
@@ -4931,8 +5485,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow message posting for client with \a 'spectator' authorization key 
- into \a 'iosdev' channel for \b 10 minutes. But despite tha fact that \a 'iosdev' channel access rights allow only subscription for \a 'spectator', 
- \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'channel' access level allow message
+ into \a 'iosdev' channel for \b 10 minutes. But despite the fact that \a 'iosdev' channel access rights allow only
+ subscription for \a 'spectator', \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'channel' access level allow message
  posting to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -4980,7 +5534,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'user' access level.
@@ -5023,7 +5577,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                 client:(NSString *)clientAuthorizationKey
            withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
@@ -5044,8 +5598,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow message posting to \a 'iosdev', \a 'androiddev' and \a 'macosdev' channels
- for \b 10 minutes. But despite tha fact that \a 'iosdev', \a 'androiddev' and \a 'macosdev' channels access rights allow only subscription,
- \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'application' access level allow message 
+ for \b 10 minutes. But despite the fact that \a 'iosdev', \a 'androiddev' and \a 'macosdev' channels access rights
+ allow only subscription, \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'application' access level allow message
  posting to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -5093,7 +5647,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'channel' access level.
@@ -5124,7 +5678,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForApplicationAtPeriod:
  */
-+ (void)grantReadAccessRightForChannels:(NSArray *)channels forPeriod:(NSUInteger)accessPeriodDuration;
++ (void)grantReadAccessRightForChannels:(NSArray *)channels forPeriod:(NSInteger)accessPeriodDuration;
 
 /**
  Grant \a 'read' access right on \a 'channel' access level which will be valid for specified amount of time for specific set of channels.
@@ -5163,8 +5717,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow message posting to \a 'iosdev', \a 'androiddev' and \a 'macosdev' channels
- for \b 10 minutes. But despite tha fact that \a 'iosdev', \a 'androiddev' and \a 'macosdev' channels access rights allow only subscription,
- \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'application' access level allow message 
+ for \b 10 minutes. But despite the fact that \a 'iosdev', \a 'androiddev' and \a 'macosdev' channels access rights
+ allow only subscription, \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'application' access level allow message
  posting to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -5212,7 +5766,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'channel' access level.
@@ -5250,7 +5804,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForApplicationAtPeriod:
  */
-+ (void)grantReadAccessRightForChannels:(NSArray *)channels forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantReadAccessRightForChannels:(NSArray *)channels forPeriod:(NSInteger)accessPeriodDuration
             withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
 /**
@@ -5270,8 +5824,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow message posting for clients with \a 'spectator' and \a 'visitor' 
- authorization keys into \a 'iosdev' channel for \b 10 minutes. But despite tha fact that \a 'iosdev' channel access rights allow 
- only subscription for \a 'spectator' and \a 'visitor', \b PubNub client allowed to post messages to any channels because of upper-layer 
+ authorization keys into \a 'iosdev' channel for \b 10 minutes. But despite the fact that \a 'iosdev' channel access
+ rights allow only subscription for \a 'spectator' and \a 'visitor', \b PubNub client allowed to post messages to any channels because of upper-layer
  configuration (\a 'channel' access level allow message posting to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -5319,7 +5873,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'user' access level.
@@ -5355,7 +5909,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                clients:(NSArray *)clientsAuthorizationKeys;
 
 /**
@@ -5395,8 +5949,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
  
  Code above configure access rights in a way, which won't allow message posting for clients with \a 'spectator' and \a 'visitor'
- authorization keys into \a 'iosdev' channel for \b 10 minutes. But despite tha fact that \a 'iosdev' channel access rights allow
- only subscription for \a 'spectator' and \a 'visitor', \b PubNub client allowed to post messages to any channels because of upper-layer
+ authorization keys into \a 'iosdev' channel for \b 10 minutes. But despite the fact that \a 'iosdev' channel access
+ rights allow only subscription for \a 'spectator' and \a 'visitor', \b PubNub client allowed to post messages to any channels because of upper-layer
  configuration (\a 'channel' access level allow message posting to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -5444,7 +5998,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'read' access right and revoke \a 'write' access right for
  \a 'user' access level.
@@ -5487,7 +6041,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantWriteAccessRightForChannel:forPeriod:
  */
-+ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantReadAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                clients:(NSArray *)clientsAuthorizationKeys
            withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
@@ -5508,8 +6062,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow subscription to \a 'iosdev' channel for \b 10 minutes. 
- But despite tha fact that \a 'iosdev' channel access rights allow only message posting, \b PubNub client allowed to post 
- subscribe to any channels because of upper-layer configuration (\a 'application' access level allow subscription
+ But despite the fact that \a 'iosdev' channel access rights allow only message posting,
+ \b PubNub client allowed to post subscribe to any channels because of upper-layer configuration (\a 'application' access level allow subscription
  to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -5557,7 +6111,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'write' access right and revoke \a 'read' access right for
  \a 'channel' access level.
@@ -5588,7 +6142,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantReadAccessRightForApplicationAtPeriod:
  */
-+ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration;
++ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration;
 
 /**
  Grant \a 'write' access right on \a 'channel' access level which will be valid for specified amount of time.
@@ -5627,7 +6181,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow subscription to \a 'iosdev' channel for \b 10 minutes. 
- But despite tha fact that \a 'iosdev' channel access rights allow only message posting, \b PubNub client allowed to post 
+ But despite the fact that \a 'iosdev' channel access rights allow only message posting, \b PubNub client allowed to post
  subscribe to any channels because of upper-layer configuration (\a 'application' access level allow subscription
  to any channels for \b 10 minutes).
 
@@ -5676,7 +6230,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'write' access right and revoke \a 'read' access right for
  \a 'channel' access level.
@@ -5714,11 +6268,11 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantReadAccessRightForApplicationAtPeriod:
  */
-+ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
             withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
-+ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                  client:(NSString *)clientAuthorizationKey;
-+ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                  client:(NSString *)clientAuthorizationKey
             withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
@@ -5739,8 +6293,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow subscription to \a 'iosdev', \a 'androiddev' and \a 'macosdev' channels
- for \b 10 minutes. But despite tha fact that\a 'iosdev', \a 'androiddev' and \a 'macosdev' channels access rights allow only message posting,
- \b PubNub client allowed to post subscribe to any channels because of upper-layer configuration (\a 'application' access level allow subscription
+ for \b 10 minutes. But despite the fact that\a 'iosdev', \a 'androiddev' and \a 'macosdev' channels access rights
+ allow only message posting, \b PubNub client allowed to post subscribe to any channels because of upper-layer configuration (\a 'application' access level allow subscription
  to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -5788,7 +6342,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'write' access right and revoke \a 'read' access right for
  \a 'channel' access level.
@@ -5819,7 +6373,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantReadAccessRightForApplicationAtPeriod:
  */
-+ (void)grantWriteAccessRightForChannels:(NSArray *)channels forPeriod:(NSUInteger)accessPeriodDuration;
++ (void)grantWriteAccessRightForChannels:(NSArray *)channels forPeriod:(NSInteger)accessPeriodDuration;
 
 /**
  Grant \a 'write' access right on \a 'channel' access level which will be valid for specified amount of time for specific set of channels.
@@ -5858,8 +6412,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
 
  Code above configure access rights in a way, which won't allow subscription to \a 'iosdev', \a 'androiddev' and \a 'macosdev' channels
- for \b 10 minutes. But despite tha fact that\a 'iosdev', \a 'androiddev' and \a 'macosdev' channels access rights allow only message posting,
- \b PubNub client allowed to post subscribe to any channels because of upper-layer configuration (\a 'application' access level allow subscription
+ for \b 10 minutes. But despite the fact that\a 'iosdev', \a 'androiddev' and \a 'macosdev' channels access rights
+ allow only message posting, \b PubNub client allowed to post subscribe to any channels because of upper-layer configuration (\a 'application' access level allow subscription
  to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -5907,7 +6461,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'write' access right and revoke \a 'read' access right for
  \a 'channel' access level.
@@ -5945,7 +6499,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantReadAccessRightForApplicationAtPeriod:
  */
-+ (void)grantWriteAccessRightForChannels:(NSArray *)channels forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantWriteAccessRightForChannels:(NSArray *)channels forPeriod:(NSInteger)accessPeriodDuration
              withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
 /**
@@ -5965,9 +6519,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
  
  Code above configure access rights in a way, which won't allow subscription on \a 'iosdev' channel for clients with \a 'spectator' and \a 'visitor'
- authorization keys for \b 10 minutes. But despite tha fact that \a 'iosdev' channel access rights allow
- only subscription for \a 'spectator' and \a 'visitor', \b PubNub client allowed to post messages to any channels because of upper-layer
- configuration (\a 'channel' access level allow message posting to any channels for \b 10 minutes).
+ authorization keys for \b 10 minutes. But despite the fact that \a 'iosdev' channel access rights allow only subscription for \a 'spectator' and \a 'visitor', \b PubNub client allowed to post messages to any channels because of upper-layer configuration (\a 'channel' access level allow message posting to any channels for \b 10 minutes).
 
  And handle it with delegates:
  @code
@@ -6014,7 +6566,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'write' access right and revoke \a 'read' access right for
  \a 'user' access level.
@@ -6057,7 +6609,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantReadAccessRightForChannel:forPeriod:
  */
-+ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                 clients:(NSArray *)clientsAuthorizationKeys;
 
 /**
@@ -6097,8 +6649,8 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
  
  Code above configure access rights in a way, which won't allow message posting for clients with \a 'spectator' and \a 'visitor'
- authorization keys into \a 'iosdev' channel for \b 10 minutes. But despite tha fact that \a 'iosdev' channel access rights allow
- only subscription for \a 'spectator' and \a 'visitor', \b PubNub client allowed to post messages to any channels because of upper-layer
+ authorization keys into \a 'iosdev' channel for \b 10 minutes. But despite the fact that \a 'iosdev' channel access
+ rights allow only subscription for \a 'spectator' and \a 'visitor', \b PubNub client allowed to post messages to any channels because of upper-layer
  configuration (\a 'channel' access level allow message posting to any channels for \b 10 minutes).
 
  And handle it with delegates:
@@ -6146,7 +6698,7 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @note Make sure that you enabled "Access Manager" on https://admin.pubnub.com.
 
- @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 5 minutes).
+ @note You can pass \c 0 as \a 'accessPeriodDuration' argument to use default value (default value is \b 1440 minutes).
 
  @note When this API is used, it will grant \a 'write' access right and revoke \a 'read' access right for
  \a 'user' access level.
@@ -6189,24 +6741,24 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 
  @see +grantReadAccessRightForChannel:forPeriod:
  */
-+ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantWriteAccessRightForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                 clients:(NSArray *)clientsAuthorizationKeys
             withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
-+ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration;
-+ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration;
++ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
            withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
-+ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                 client:(NSString *)clientAuthorizationKey;
-+ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                 client:(NSString *)clientAuthorizationKey
            withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
-+ (void)grantAllAccessRightsForChannels:(NSArray *)channels forPeriod:(NSUInteger)accessPeriodDuration;
-+ (void)grantAllAccessRightsForChannels:(NSArray *)channels forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantAllAccessRightsForChannels:(NSArray *)channels forPeriod:(NSInteger)accessPeriodDuration;
++ (void)grantAllAccessRightsForChannels:(NSArray *)channels forPeriod:(NSInteger)accessPeriodDuration
             withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
-+ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                clients:(NSArray *)clientsAuthorizationKeys;
-+ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSUInteger)accessPeriodDuration
++ (void)grantAllAccessRightsForChannel:(PNChannel *)channel forPeriod:(NSInteger)accessPeriodDuration
                                clients:(NSArray *)clientsAuthorizationKeys
            withCompletionHandlingBlock:(PNClientChannelAccessRightsChangeBlock)handlerBlock;
 
@@ -8214,12 +8766,77 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  @endcode
  
  @param message
- Objecti which should be sent to the channel. It can be any object which can be serialized into JSON: \c NSString, \c NSNumber, \c NSArray, 
+ Object which should be sent to the channel. It can be any object which can be serialized into JSON: \c NSString, \c NSNumber, \c NSArray,
  \c NSDictionary .
  
  @return \b PNMessage instance if message payload is correct or \c nil if not.
  */
 + (PNMessage *)sendMessage:(id)message toChannel:(PNChannel *)channel;
+
+/**
+ Send \c message to the \c channel. All messages placed into queue and will be sent in the same order as they were scheduled.
+ 
+ @code
+ @endcode
+ This method extendeds \a +sendMessage:toChannel: and allow to specify whether message should be GZIPed before sending to the \b PubNub service or not.
+ 
+ @code
+ @endcode
+ \b Example:
+ 
+ @code
+ [PubNub setConfiguration:[PNConfiguration defaultConfiguration] andDelegate:self];
+ [PubNub connect];
+ [PubNub sendMessage:@{@"array": @[@"of", @"strings"], @"and": @16} toChannel:[PNChannel channelWithName:@"iosdev"] compressed:YES];
+ @endcode
+ 
+ And handle it with delegates:
+ @code
+ - (void)pubnubClient:(PubNub *)client willSendMessage:(PNMessage *)message {
+ 
+     // PubNub client is sending message at this moment.
+ }
+ 
+ - (void)pubnubClient:(PubNub *)client didFailMessageSend:(PNMessage *)message withError:(PNError *)error {
+ 
+     // PubNub client failed to send message and reason is in 'error'.
+ }
+ 
+ - (void)pubnubClient:(PubNub *)client didSendMessage:(PNMessage *)message {
+ 
+     // PubNub client successfully sent message to specified channel.
+ }
+ @endcode
+ 
+ There is also way to observe connection state from any place in your application using  \b PNObservationCenter:
+ @code
+ [[PNObservationCenter defaultCenter] addMessageProcessingObserver:self
+  withBlock:^(PNMessageState state, id data) {
+ 
+  switch (state) {
+      case PNMessageSending:
+ 
+          // PubNub client is sending message at this moment. 'data' stores reference on PNMessage instance which is processing at this moment.
+          break;
+      case PNMessageSendingError:
+ 
+          // PubNub client failed to send message and reason is in 'data' object.
+          break;
+      case PNMessageSent:
+ 
+          // PubNub client successfully sent message to specified channel. 'data' stores reference on PNMessage instance which has been sent.
+          break;
+      }
+ }];
+ @endcode
+ 
+ @param message
+ Object which should be sent to the channel. It can be any object which can be serialized into JSON: \c NSString, \c NSNumber, \c NSArray,
+ \c NSDictionary .
+ 
+ @return \b PNMessage instance if message payload is correct or \c nil if not.
+ */
++ (PNMessage *)sendMessage:(id)message toChannel:(PNChannel *)channel compressed:(BOOL)shouldCompressMessage;
 
 /**
  Same as +sendMessage:toChannel: but allow to specify completion block which will be called when message will be sent or in case of error.
@@ -8230,9 +8847,156 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
 + (PNMessage *)sendMessage:(id)message toChannel:(PNChannel *)channel withCompletionBlock:(PNClientMessageProcessingBlock)success;
 
 /**
+ Send \c message to the \c channel. All messages placed into queue and will be sent in the same order as they were scheduled.
+ 
+ @code
+ @endcode
+ This method extendeds \a +sendMessage:toChannel:withCompletionBlock: and allow to specify whether message should be GZIPed before sending to the 
+ \b PubNub service or not.
+ 
+ @code
+ @endcode
+ \b Example:
+ 
+ @code
+ [PubNub setConfiguration:[PNConfiguration defaultConfiguration] andDelegate:self];
+ [PubNub connect];
+ [PubNub sendMessage:@{@"array": @[@"of", @"strings"], @"and": @16} toChannel:[PNChannel channelWithName:@"iosdev"] compressed:YES 
+ withCompletionBlock:^(PNMessageState state, id data) {
+ 
+  switch (state) {
+      case PNMessageSending:
+ 
+          // PubNub client is sending message at this moment. 'data' stores reference on PNMessage instance which is processing at this moment.
+          break;
+      case PNMessageSendingError:
+ 
+          // PubNub client failed to send message and reason is in 'data' object.
+          break;
+      case PNMessageSent:
+ 
+          // PubNub client successfully sent message to specified channel. 'data' stores reference on PNMessage instance which has been sent.
+          break;
+      }
+ }];
+ @endcode
+ 
+ And handle it with delegates:
+ @code
+ - (void)pubnubClient:(PubNub *)client willSendMessage:(PNMessage *)message {
+ 
+    // PubNub client is sending message at this moment.
+ }
+ 
+ - (void)pubnubClient:(PubNub *)client didFailMessageSend:(PNMessage *)message withError:(PNError *)error {
+ 
+    // PubNub client failed to send message and reason is in 'error'.
+ }
+ 
+ - (void)pubnubClient:(PubNub *)client didSendMessage:(PNMessage *)message {
+ 
+    // PubNub client successfully sent message to specified channel.
+ }
+ @endcode
+ 
+ There is also way to observe connection state from any place in your application using  \b PNObservationCenter:
+ @code
+ [[PNObservationCenter defaultCenter] addMessageProcessingObserver:self
+                                                         withBlock:^(PNMessageState state, id data) {
+ 
+    switch (state) {
+        case PNMessageSending:
+ 
+            // PubNub client is sending message at this moment. 'data' stores reference on PNMessage instance which is processing at this moment.
+            break;
+    case PNMessageSendingError:
+ 
+            // PubNub client failed to send message and reason is in 'data' object.
+            break;
+    case PNMessageSent:
+ 
+            // PubNub client successfully sent message to specified channel. 'data' stores reference on PNMessage instance which has been sent.
+            break;
+    }
+ }];
+ @endcode
+ 
+ @param message
+ Object which should be sent to the channel. It can be any object which can be serialized into JSON: \c NSString, \c NSNumber, \c NSArray,
+ \c NSDictionary .
+ 
+ @return \b PNMessage instance if message payload is correct or \c nil if not.
+ */
++ (PNMessage *)sendMessage:(id)message toChannel:(PNChannel *)channel compressed:(BOOL)shouldCompressMessage
+       withCompletionBlock:(PNClientMessageProcessingBlock)success;
+
+/**
  Asynchronously send configured message object to PubNub service.
  */
 + (void)sendMessage:(PNMessage *)message;
+
+/**
+ Send configured \b PNMessage instance. All messages will be placed into queue and will be send in the same order as they were scheduled.
+ 
+ @code
+ @endcode
+ This method extendeds \a +sendMessage: and allow to specify whether message should be GZIPed before sending to the \b PubNub service or not.
+ 
+ @code
+ @endcode
+ \b Example:
+ 
+ @code
+ [PubNub setConfiguration:[PNConfiguration defaultConfiguration] andDelegate:self];
+ [PubNub connect];
+ [PubNub sendMessage:storedMessageInstance compressed:YES];
+ @endcode
+ 
+ And handle it with delegates:
+ @code
+ - (void)pubnubClient:(PubNub *)client willSendMessage:(PNMessage *)message {
+ 
+     // PubNub client is sending message at this moment.
+ }
+ 
+ - (void)pubnubClient:(PubNub *)client didFailMessageSend:(PNMessage *)message withError:(PNError *)error {
+ 
+     // PubNub client failed to send message and reason is in 'error'.
+ }
+ 
+ - (void)pubnubClient:(PubNub *)client didSendMessage:(PNMessage *)message {
+ 
+     // PubNub client successfully sent message to specified channel.
+ }
+ @endcode
+ 
+ There is also way to observe connection state from any place in your application using  \b PNObservationCenter:
+ @code
+ [[PNObservationCenter defaultCenter] addMessageProcessingObserver:self
+  withBlock:^(PNMessageState state, id data) {
+ 
+  switch (state) {
+      case PNMessageSending:
+ 
+          // PubNub client is sending message at this moment. 'data' stores reference on PNMessage instance which is processing at this moment.
+          break;
+      case PNMessageSendingError:
+ 
+          // PubNub client failed to send message and reason is in 'data' object.
+          break;
+      case PNMessageSent:
+ 
+          // PubNub client successfully sent message to specified channel. 'data' stores reference on PNMessage instance which has been sent.
+          break;
+      }
+ }];
+ @endcode
+ 
+ @param message
+ Object which should be sent to the channel. It can be any object which can be serialized into JSON: \c NSString, \c NSNumber, \c NSArray,
+ \c NSDictionary .
+ */
++ (void)sendMessage:(PNMessage *)message compressed:(BOOL)shouldCompressMessage;
 
 /**
  Same as +sendMessage: but allow to specify completion block which will be called when message will be sent or in case of error.
@@ -8242,90 +9006,1170 @@ andCompletionHandlingBlock:(PNClientChannelSubscriptionHandlerBlock)handlerBlock
  */
 + (void)sendMessage:(PNMessage *)message withCompletionBlock:(PNClientMessageProcessingBlock)success;
 
+/**
+ Send configured \b PNMessage instance. All messages will be placed into queue and will be send in the same order as they were scheduled.
+ 
+ @code
+ @endcode
+ This method extendeds \a +sendMessage:withCompletionBlock: and allow to specify whether message should be GZIPed before sending to the \b PubNub service or not.
+ 
+ @code
+ @endcode
+ \b Example:
+ 
+ @code
+ [PubNub setConfiguration:[PNConfiguration defaultConfiguration] andDelegate:self];
+ [PubNub connect];
+ [PubNub sendMessage:storedMessageInstance compressed:YES
+ withCompletionBlock:^(PNMessageState state, id data) {
+ 
+  switch (state) {
+      case PNMessageSending:
+ 
+          // PubNub client is sending message at this moment. 'data' stores reference on PNMessage instance which is processing at this moment.
+          break;
+      case PNMessageSendingError:
+ 
+          // PubNub client failed to send message and reason is in 'data' object.
+          break;
+      case PNMessageSent:
+ 
+          // PubNub client successfully sent message to specified channel. 'data' stores reference on PNMessage instance which has been sent.
+          break;
+      }
+ }];
+ @endcode
+ 
+ And handle it with delegates:
+ @code
+ - (void)pubnubClient:(PubNub *)client willSendMessage:(PNMessage *)message {
+ 
+     // PubNub client is sending message at this moment.
+ }
+ 
+ - (void)pubnubClient:(PubNub *)client didFailMessageSend:(PNMessage *)message withError:(PNError *)error {
+ 
+     // PubNub client failed to send message and reason is in 'error'.
+ }
+ 
+ - (void)pubnubClient:(PubNub *)client didSendMessage:(PNMessage *)message {
+ 
+     // PubNub client successfully sent message to specified channel.
+ }
+ @endcode
+ 
+ There is also way to observe connection state from any place in your application using  \b PNObservationCenter:
+ @code
+ [[PNObservationCenter defaultCenter] addMessageProcessingObserver:self
+  withBlock:^(PNMessageState state, id data) {
+ 
+  switch (state) {
+      case PNMessageSending:
+ 
+          // PubNub client is sending message at this moment. 'data' stores reference on PNMessage instance which is processing at this moment.
+          break;
+      case PNMessageSendingError:
+ 
+          // PubNub client failed to send message and reason is in 'data' object.
+          break;
+      case PNMessageSent:
+ 
+          // PubNub client successfully sent message to specified channel. 'data' stores reference on PNMessage instance which has been sent.
+          break;
+      }
+ }];
+ @endcode
+ 
+ @param message
+ Object which should be sent to the channel. It can be any object which can be serialized into JSON: \c NSString, \c NSNumber, \c NSArray,
+ \c NSDictionary .
+ */
++ (void)sendMessage:(PNMessage *)message compressed:(BOOL)shouldCompressMessage withCompletionBlock:(PNClientMessageProcessingBlock)success;
+
 
 #pragma mark - History methods
 
 /**
- Fetch all history for specified channel
+ Fetch all messages from history for specified channel.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
  */
 + (void)requestFullHistoryForChannel:(PNChannel *)channel;
 
 /**
- Same as +requestFullHistoryForChannel: but allow to specify completion block which will be called when messages history will be received.
+ Fetch all messages from history for specified channel.
  
- Only last call of this method will call completion block. If you need to track history loading events from many places, use PNObservationCenter 
- methods for this purpose.
+ @code
+ @endcode
+ This method extends \a +requestFullHistoryForChannel: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process, 
+ use \b PNObservationCenter methods for this purpose.
  */
 + (void)requestFullHistoryForChannel:(PNChannel *)channel withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
 
 /**
- Fetch history for specified channel in defined time frame
+ Fetch all messages from history for specified channel.
+ 
+ @code
+ @endcode
+ This method extends \a +requestFullHistoryForChannel: and allow to specify whether message time token should be included
+ or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ */
++ (void)requestFullHistoryForChannel:(PNChannel *)channel includingTimeToken:(BOOL)shouldIncludeTimeToken;
+
+/**
+ Fetch all messages from history for specified channel.
+ 
+ @code
+ @endcode
+ This method extends \a +requestFullHistoryForChannel:includingTimeToken: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel; 
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestFullHistoryForChannel:(PNChannel *)channel includingTimeToken:(BOOL)shouldIncludeTimeToken
+                 withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
  */
 + (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate
+             withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from: and allow to specify whether message time token should be included
+ or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate includingTimeToken:(BOOL)shouldIncludeTimeToken;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:includingTimeToken: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate includingTimeToken:(BOOL)shouldIncludeTimeToken
+             withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from: and allow to specify end time token for history request.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be 
+ returned.
+ */
 + (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate;
 
 /**
- Same as +requestHistoryForChannel:from:to: but allow to specify completion block which will be called when messages history will be received.
-
- Only last call of this method will call completion block. If you need to track history loading events from many places, use PNObservationCenter 
- methods for this purpose.
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
  */
-+ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
 + (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate
              withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
 
 /**
- Fetch history for specified channel in defined time frame with specified limits
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to: and allow to specify whether message time token should be included
+ or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
  */
-+ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit;
-+ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit;
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate
+              includingTimeToken:(BOOL)shouldIncludeTimeToken;
 
 /**
- Same as +requestHistoryForChannel:from:to:limit: but allow to specify completion block which will be called when messages history will be received.
+ Fetch messages from history for specified channel in defined time frame.
  
- Only last call of this method will call completion block. If you need to track history loading events from many places, use PNObservationCenter 
- methods for this purpose.
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to:includingTimeToken: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate
+              includingTimeToken:(BOOL)shouldIncludeTimeToken withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from: and allow to specify maximum number of messages which should be
+ returned for history request.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:limit: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
  */
 + (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit
              withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:limit: and allow to specify whether message time token should be
+ included or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit
+              includingTimeToken:(BOOL)shouldIncludeTimeToken;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:limit:includingTimeToken: and allow to specify history request 
+ handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit
+              includingTimeToken:(BOOL)shouldIncludeTimeToken withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to: and allow to specify maximum number of messages which should be
+ returned for history request.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit;
+
+/**
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to:limit: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
 + (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit
              withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
 
 /**
- Fetch history for specified channel in defined time frame, limit and whether response should be inverted or not.
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to:limit: and allow to specify whether message time token should be
+ included or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
  */
-+ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit reverseHistory:(BOOL)shouldReverseMessageHistory;
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit
+              includingTimeToken:(BOOL)shouldIncludeTimeToken;
+
+/**
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to:limit:includingTimeToken: and allow to specify history request
+ handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit
+              includingTimeToken:(BOOL)shouldIncludeTimeToken withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:limit: and allow to specify whether messages order in history response
+ should be inverted or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldReverseMessageHistory
+ If set to \c YES all older messages will come first in response. Default value is \b NO.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit
+                  reverseHistory:(BOOL)shouldReverseMessageHistory;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:limit:reverseHistory: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldReverseMessageHistory
+ If set to \c YES all older messages will come first in response. Default value is \b NO.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit
+                  reverseHistory:(BOOL)shouldReverseMessageHistory withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:limit:reverseHistory: and allow to specify whether message 
+ time token should be included or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldReverseMessageHistory
+ If set to \c YES all older messages will come first in response. Default value is \b NO.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit
+                  reverseHistory:(BOOL)shouldReverseMessageHistory includingTimeToken:(BOOL)shouldIncludeTimeToken;
+
+/**
+ Fetch messages from history for specified channel starting from specified date and till current time.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:limit:reverseHistory:includingTimeToken: and allow to specify 
+ history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldReverseMessageHistory
+ If set to \c YES all older messages will come first in response. Default value is \b NO.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit
+                  reverseHistory:(BOOL)shouldReverseMessageHistory includingTimeToken:(BOOL)shouldIncludeTimeToken
+             withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to:limit: and allow to specify whether messages order in history response
+ should be inverted or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldReverseMessageHistory
+ If set to \c YES all older messages will come first in response. Default value is \b NO.
+ */
 + (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit
                   reverseHistory:(BOOL)shouldReverseMessageHistory;
 
 /**
- Same as +requestHistoryForChannel:from:to:limit:reverseHistory: but allow to specify completion block which will be called when messages history 
- will be received.
+ Fetch messages from history for specified channel in defined time frame.
  
- Only last call of this method will call completion block. If you need to track history loading events from many places, use PNObservationCenter 
- methods for this purpose.
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to:limit:reverseHistory: and allow to specify history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldReverseMessageHistory
+ If set to \c YES all older messages will come first in response. Default value is \b NO.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
  */
-+ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate limit:(NSUInteger)limit reverseHistory:(BOOL)shouldReverseMessageHistory
-             withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
 + (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit
                   reverseHistory:(BOOL)shouldReverseMessageHistory withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
+
+/**
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:ot:limit:reverseHistory: and allow to specify whether message
+ time token should be included or not.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldReverseMessageHistory
+ If set to \c YES all older messages will come first in response. Default value is \b NO.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit
+                  reverseHistory:(BOOL)shouldReverseMessageHistory includingTimeToken:(BOOL)shouldIncludeTimeToken;
+
+/**
+ Fetch messages from history for specified channel in defined time frame.
+ 
+ @code
+ @endcode
+ This method extends \a +requestHistoryForChannel:from:to:limit:reverseHistory:includingTimeToken: and allow to specify
+ history request handling block.
+ 
+ @param channel
+ \b PNChannel instance for which \b PubNub client should fetch messages history.
+ 
+ @param startDate
+ \b PNDate instance which represent time token starting from which messages should be returned from history.
+ 
+ @param endDate
+ \b PNDate instance which represent time token which is used to specify concrete time frame from which messages should be
+ returned.
+ 
+ @param limit
+ Maximum number of messages which should be pulled out from history.
+ 
+ @param shouldReverseMessageHistory
+ If set to \c YES all older messages will come first in response. Default value is \b NO.
+ 
+ @param shouldIncludeTimeToken
+ Whether message post date (time token) should be added to the message in history response.
+ 
+ @param handlerBlock
+ The block which will be called by \b PubNub client as soon as history request will be completed. The block takes five arguments:
+ \c messages - array of \b PNMessage instances which represent messages sent to the specified \c channel;
+ \c channel - \b PNChannel instance for which history request has been made; \c startDate - \b PNDate instance which represent date
+ of the first message from returned list of messages; \c endDate - \b PNDate instance which represent date of the last message
+ from returned list of messages; \c error - describes what exactly went wrong (check error code and compare it with \b PNErrorCodes).
+ 
+ @warning Only last call of this method will call completion block. If you need to track history request process,
+ use \b PNObservationCenter methods for this purpose.
+ */
++ (void)requestHistoryForChannel:(PNChannel *)channel from:(PNDate *)startDate to:(PNDate *)endDate limit:(NSUInteger)limit
+                  reverseHistory:(BOOL)shouldReverseMessageHistory includingTimeToken:(BOOL)shouldIncludeTimeToken
+             withCompletionBlock:(PNClientHistoryLoadHandlingBlock)handleBlock;
 
 
 #pragma mark - Participant methods
 
 /**
- Request list of participants for specified channel
+ Request list of participants for all channels.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsList;
+
+/**
+ Request list of participants for all channels.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantsList: and allow to specify
+ participants retrieval process block.
+
+ @param handleBlock
+ The block which will be called by \b PubNub client as soon as participants list request operation will be completed.
+ The block takes three arguments:
+ \c clients - array of \b PNClient instances which represent client which is subscribed on target channel (if
+ \a 'isClientIdentifiersRequired' is set to \c NO than all objects will have \c kPNAnonymousParticipantIdentifier value);
+ \c channel - will be empty for this type of request; \c error - describes what
+ exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @note This method by default won't request client's state.
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsListWithCompletionBlock:(PNClientParticipantsHandlingBlock)handleBlock;
+
+/**
+ Request list of participants for all channels.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantsList: and allow to specify whether server should return client
+ identifiers or not.
+
+ @param isClientIdentifiersRequired
+ Whether or not \b PubNub client should fetch list of client identifiers or only number of them will be returned by
+ server.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsListWithClientIdentifiers:(BOOL)isClientIdentifiersRequired;
+
+/**
+ Request list of participants for all channels.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantsListWithClientIdentifiers: and allow to specify participants retrieval
+ process block.
+
+ @param isClientIdentifiersRequired
+ Whether or not \b PubNub client should fetch list of client identifiers or only number of them will be returned by
+ server.
+
+ @param handleBlock
+ The block which will be called by \b PubNub client as soon as participants list request operation will be completed.
+ The block takes three arguments:
+ \c clients - array of \b PNClient instances which represent client which is subscribed on target channel (if
+ \a 'isClientIdentifiersRequired' is set to \c NO than all objects will have \c kPNAnonymousParticipantIdentifier value);
+ \c channel - will be empty for this type of request; \c error - describes what
+ exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @note This method by default won't request client's state.
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsListWithClientIdentifiers:(BOOL)isClientIdentifiersRequired
+                                  andCompletionBlock:(PNClientParticipantsHandlingBlock)handleBlock;
+
+/**
+ Request list of participants for all channels.
+ 
+ @code
+ @endcode
+ This method extends \a +requestParticipantsListWithClientIdentifiers: and allow to specify
+ whether server should return state which is set to the client or not.
+ 
+ @param isClientIdentifiersRequired
+ Whether or not \b PubNub client should fetch list of client identifiers or only number of them will be returned by
+ server.
+ 
+ @param shouldFetchClientState
+ Whether or not \b PubNub client should fetch additional information which has been added to the client during
+ subscription or specific API endpoints.
+ 
+ @note If \a 'isClientIdentifiersRequired' is set to \c NO then value of \a 'shouldFetchClientState' will be
+ ignored and returned result array will contain list of \b PNClient instances with names set to \a 'unknown'.
+ 
+ @since 3.6.0
+ */
++ (void)requestParticipantsListWithClientIdentifiers:(BOOL)isClientIdentifiersRequired
+                                         clientState:(BOOL)shouldFetchClientState;
+
+/**
+ Request list of participants for all channels.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantsListWithClientIdentifiers:clientState: and allow to specify
+ participants retrieval process block.
+
+ @param isClientIdentifiersRequired
+ Whether or not \b PubNub client should fetch list of client identifiers or only number of them will be returned by
+ server.
+
+ @param shouldFetchClientState
+ Whether or not \b PubNub client should fetch additional information which has been added to the client during
+ subscription or specific API endpoints.
+
+ @param handleBlock
+ The block which will be called by \b PubNub client as soon as participants list request operation will be completed.
+ The block takes three arguments:
+ \c clients - array of \b PNClient instances which represent client which is subscribed on target channel (if
+ \a 'isClientIdentifiersRequired' is set to \c NO than all objects will have \c kPNAnonymousParticipantIdentifier value);
+ \c channel - will be empty for this type of request; \c error - describes what
+ exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @note If \a 'isClientIdentifiersRequired' is set to \c NO then value of \a 'shouldFetchClientState' will be
+ ignored and returned result array will contain list of \b PNClient instances with names set to \a 'unknown'.
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsListWithClientIdentifiers:(BOOL)isClientIdentifiersRequired
+                                         clientState:(BOOL)shouldFetchClientState
+                                  andCompletionBlock:(PNClientParticipantsHandlingBlock)handleBlock;
+
+/**
+ Request list of participants for specified channel.
+
+ @param channel
+ \b PNChannel instance on for which \b PubNub client should retrieve information about participants.
+
+ @note This method by default won't request client's state.
  */
 + (void)requestParticipantsListForChannel:(PNChannel *)channel;
 
 /**
- Same as +requestParticipantsListForChannel: but allow to specify completion block which will be called when list of participants will be returned
- by PubNub service
- 
- Only last call of this method will call completion block. If you need to track history loading events from many places, use PNObservationCenter 
- methods for this purpose.
+ Request list of participants for specified channel.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantsListForChannel: and allow to specify
+ participants retrieval process block.
+
+ @param channel
+ \b PNChannel instance on for which \b PubNub client should retrieve information about participants.
+
+ @param handleBlock
+ The block which will be called by \b PubNub client as soon as participants list request operation will be completed.
+ The block takes three arguments:
+ \c clients - array of \b PNClient instances which represent client which is subscribed on target channel (if
+ \a 'isClientIdentifiersRequired' is set to \c NO than all objects will have \c kPNAnonymousParticipantIdentifier value);
+ \c channel - is \b PNChannel instance for which \b PubNub client received participants list; \c error - describes what
+ exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @note This method by default won't request client's state.
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
  */
 + (void)requestParticipantsListForChannel:(PNChannel *)channel withCompletionBlock:(PNClientParticipantsHandlingBlock)handleBlock;
+
+/**
+ Request list of participants for specified channel. Depending on whether \a 'isIdentifiersListRequired' is set to \C
+  YES or not, \b PubNub client will receive from server list of client identifiers or just number of subscribers in
+  specified channel.
+
+ @param channel
+ \b PNChannel instance on for which \b PubNub client should retrieve information about participants.
+
+ @param isClientIdentifiersRequired
+ Whether or not \b PubNub client should fetch list of client identifiers or only number of them will be returned by
+ server.
+
+ @note This method by default won't request client's state.
+
+ @note If \a 'isClientIdentifiersRequired' is set to \c NO then result array will contain list of \b PNClient
+ instances with names set to \a 'unknown'.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsListForChannel:(PNChannel *)channel
+                clientIdentifiersRequired:(BOOL)isClientIdentifiersRequired;
+
+/**
+ Request list of participants for specified channel. Depending on whether \a 'isIdentifiersListRequired' is set to \C
+  YES or not, \b PubNub client will receive from server list of client identifiers or just number of subscribers in
+  specified channel.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantsListForChannel:clientIdentifiersRequired: and allow to specify
+ participants retrieval process block.
+
+ @param channel
+ \b PNChannel instance on for which \b PubNub client should retrieve information about participants.
+
+ @param isClientIdentifiersRequired
+ Whether or not \b PubNub client should fetch list of client identifiers or only number of them will be returned by
+ server.
+
+ @param handleBlock
+ The block which will be called by \b PubNub client as soon as participants list request operation will be completed.
+ The block takes three arguments:
+ \c clients - array of \b PNClient instances which represent client which is subscribed on target channel (if
+ \a 'isClientIdentifiersRequired' is set to \c NO than all objects will have \c kPNAnonymousParticipantIdentifier value);
+ \c channel - is \b PNChannel instance for which \b PubNub client received participants list; \c error - describes what
+ exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @note This method by default won't request client's state.
+
+ @note If \a 'isClientIdentifiersRequired' is set to \c NO then result array will contain list of \b PNClient
+ instances with names set to \a 'unknown'.
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsListForChannel:(PNChannel *)channel clientIdentifiersRequired:(BOOL)isClientIdentifiersRequired
+                      withCompletionBlock:(PNClientParticipantsHandlingBlock)handleBlock;
+
+/**
+ Request list of participants for specified channel. Depending on whether \a 'isIdentifiersListRequired' is set to \C
+  YES or not, \b PubNub client will receive from server list of client identifiers or just number of subscribers in
+  specified channel.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantsListForChannel:clientIdentifiersRequired: and allow to specify
+ whether server should return state which is set to the client or not.
+
+ @param channel
+ \b PNChannel instance on for which \b PubNub client should retrieve information about participants.
+
+ @param isClientIdentifiersRequired
+ Whether or not \b PubNub client should fetch list of client identifiers or only number of them will be returned by
+ server.
+
+ @param shouldFetchClientState
+ Whether or not \b PubNub client should fetch additional information which has been added to the client during
+ subscription or specific API endpoints.
+
+ @note If \a 'isClientIdentifiersRequired' is set to \c NO then value of \a 'shouldFetchClientState' will be
+ ignored and returned result array will contain list of \b PNClient instances with names set to \a 'unknown'.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsListForChannel:(PNChannel *)channel clientIdentifiersRequired:(BOOL)isClientIdentifiersRequired
+                              clientState:(BOOL)shouldFetchClientState;
+
+/**
+ Request list of participants for specified channel. Depending on whether \a 'isIdentifiersListRequired' is set to \C
+  YES or not, \b PubNub client will receive from server list of client identifiers or just number of subscribers in
+  specified channel.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantsListForChannel:clientIdentifiersRequired:clientState: and allow to
+ specify participants retrieval process block.
+
+ @param channel
+ \b PNChannel instance on for which \b PubNub client should retrieve information about participants.
+
+ @param isClientIdentifiersRequired
+ Whether or not \b PubNub client should fetch list of client identifiers or only number of them will be returned by
+ server.
+
+ @param shouldFetchClientState
+ Whether or not \b PubNub client should fetch additional information which has been added to the client during
+ subscription or specific API endpoints.
+
+ @param handleBlock
+ The block which will be called by \b PubNub client as soon as participants list request operation will be completed.
+ The block takes three arguments:
+ \c clients - array of \b PNClient instances which represent client which is subscribed on target channel (if
+ \a 'isClientIdentifiersRequired' is set to \c NO than all objects will have \c kPNAnonymousParticipantIdentifier value);
+ \c channel - is \b PNChannel instance for which \b PubNub client received participants list; \c error - describes what
+ exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @note If \a 'isClientIdentifiersRequired' is set to \c NO then value of \a 'shouldFetchClientState' will be
+ ignored and returned result array will contain list of \b PNClient instances with names set to \a 'unknown'.
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantsListForChannel:(PNChannel *)channel clientIdentifiersRequired:(BOOL)isClientIdentifiersRequired
+                              clientState:(BOOL)shouldFetchClientState
+                      withCompletionBlock:(PNClientParticipantsHandlingBlock)handleBlock;
+
+/**
+ Request list of channels in which current client identifier reside at this moment.
+
+ @param clientIdentifier
+ Client identifier for which \b PubNub client should get list of channels in which it reside.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantChannelsList:(NSString *)clientIdentifier;
+
+/**
+ Request list of channels in which current client identifier reside at this moment.
+
+ @code
+ @endcode
+ This method extends \a +requestParticipantChannelsList: and allow to specify participant channels retrieval process
+ block.
+
+ @param clientIdentifier
+ Client identifier for which \b PubNub client should get list of channels in which it reside.
+
+ @param handleBlock
+ The block which will be called by \b PubNub client as soon as participant channels list request operation will be
+ completed. The block takes three arguments:
+ \c clientIdentifier - identifier for which \b PubNub client search for channels;
+ \c channels - is list of \b PNChannel instances in which \c clientIdentifier has been found as subscriber; \c error -
+ describes what exactly went wrong (check error code and compare it with \b PNErrorCodes ).
+
+ @warning Only last call of this method will call completion block. If you need to track participants loading events
+ from many places, use PNObservationCenter methods for this purpose.
+
+ @since 3.6.0
+ */
++ (void)requestParticipantChannelsList:(NSString *)clientIdentifier
+                   withCompletionBlock:(PNClientParticipantChannelsHandlingBlock)handleBlock;
 
 
 #pragma mark - Crypto helper methods

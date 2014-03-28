@@ -53,7 +53,7 @@
 /**
  * Generate object sending request to specified channel
  */
-- (PNMessage *)sendMessage:(id)object toChannel:(PNChannel *)channel;
+- (PNMessage *)sendMessage:(id)object toChannel:(PNChannel *)channel compressed:(BOOL)shouldCompressMessage;
 
 /**
  * Sends configured message request to the PubNub service
@@ -92,7 +92,7 @@
  @see \a -auditAccessRightsForChannels:clients:
  */
 - (void)changeAccessRightsForChannels:(NSArray *)channels accessRights:(PNAccessRights)accessRights
-                    authorizationKeys:(NSArray *)authorizationKeys forPeriod:(NSUInteger)accessPeriod;
+                    authorizationKeys:(NSArray *)authorizationKeys forPeriod:(NSInteger)accessPeriod;
 
 /**
  Audit access rights for specific object (object defined by set of parameters).

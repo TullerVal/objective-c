@@ -128,6 +128,19 @@
             errorCode = kPNPushNotificationsNotEnabledError;
         }
     }
+    // Check whether error by issue with push notifications feature on server
+    else if ([errorMessage rangeOfString:@"Forbidden"].location != NSNotFound){
+        
+        errorCode = kPNAPIAccessForbiddenError;
+    }
+    else if ([errorMessage rangeOfString:@"Storage"].location != NSNotFound){
+        
+        // Check whether storage & hostory is not enabled
+        if ([errorMessage rangeOfString:@"not enabled"].location != NSNotFound) {
+            
+            errorCode = kPNStorageNotEnabledError;
+        }
+    }
 
     PNError *error = nil;
     if (errorCode == kPNUnknownError) {
@@ -204,6 +217,9 @@
             case kPNRequestExecutionFailedOnInternetFailureError:
             case kPNRequestExecutionFailedClientNotReadyError:
             case kPNRequestExecutionFailedClientSuspendedError:
+            case kPNCantUpdateStateForNotSubscribedChannelsError:
+            case kPNInvalidStatePayloadError:
+            case kPNStorageNotEnabledError:
 
                 errorDescription = @"PubNub client can't perform request";
                 break;
@@ -355,6 +371,11 @@
 
             failureReason = @"Looks like the client suspended";
             break;
+        case kPNStorageNotEnabledError:
+            
+            failureReason = @"Looks like History & Storage feature is not enabled. Be sure to enable it for your keys at "
+                             "http://admin.pubnub.com, and try again";
+            break;
         case kPNPresenceAPINotAvailableError:
 
             failureReason = @"Looks like the Presence feature is not enabled. Be sure to enable it for your keys at "
@@ -395,6 +416,15 @@
         case kPNMessageHasNoChannelError:
 
             failureReason = @"Looks like the target channel for the message has not been specified";
+            break;
+        case kPNCantUpdateStateForNotSubscribedChannelsError:
+            
+            failureReason = @"Looks like client tried to update state for channel, on which it not subscribed.";
+            break;
+        case kPNInvalidStatePayloadError:
+
+            failureReason = @"Looks like invalid state has been used for request or you tried update state of the "
+                             "channel on which you not subscribed at this moment.";
             break;
         case kPNMessageObjectError:
 
@@ -561,6 +591,20 @@
         case kPNMessageHasNoChannelError:
 
             fixSuggestion = @"Ensure that you specified a valid channel for this message.";
+            break;
+        case kPNCantUpdateStateForNotSubscribedChannelsError:
+            
+            fixSuggestion = @"Make sure that you subscribed on channel, for which you update state.";
+            break;
+        case kPNInvalidStatePayloadError:
+
+            fixSuggestion = @"Make sure that your state values supported (integer, float or string) and check whether "
+                             "you subscribed on channel for which you want to update state or not (you can update "
+                             "state only for channels on which you subscribed).";
+            break;
+        case kPNStorageNotEnabledError:
+            
+            fixSuggestion = @"Please visit https://admin.pubnub.com to enable History & Storage feature.";
             break;
         case kPNTooLongMessageError:
 

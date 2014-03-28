@@ -6,11 +6,12 @@ language: objective-c
 script:
 - xcodebuild build -project cocoa/PubNubMacOSTestApplication/PubNubMacOSTestApplication.xcodeproj  > ./coverage/log_Mac.txt
 - xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386  > ./coverage/log_iOS.txt
+# - xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme travis-ci -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_iOS.txt
 
 
 env:
   global:
-  - secure: cUOMlvKFAWpk2yCcKI5R0YwQ1AHvf7dQueKbT+kpqarLQdIkeXk84VAu6XY0Vx4kpc43XcnOCwu0JiiXY5fBfo5RWP2ZTPeFTs284d3mQMnFnulotNBy+88RYAIdIecn6zrV4OS3ScjvPfM07eeDBhqRLvNqXoZobbbuN+7tJGs=
+  - secure: ITDhaSSL8y+BcD70Cq8BZYZWvodah4rygOLOAcyayKKpInXJd6FfdXVQ2pIKlrdtCyaTmcGEvCllxlFX6OfmDnDwNVpS80vl5CbJcDAJstXGbsp1XOAyI8sKBM4Ogq8V1FoCo4EjzVwNtVbvY9p74OgKHM/uv0kyiN5CXj0O4bU=
 
 after_failure:
 - echo "fail" > ./coverage/fail.txt
@@ -19,6 +20,8 @@ after_success:
 - rm ./coverage/fail.txt
 
 after_script: 
+- echo "GH_TOKEN "
+- echo ${GH_TOKEN}
 - ./update-gh-pages.sh
 
 

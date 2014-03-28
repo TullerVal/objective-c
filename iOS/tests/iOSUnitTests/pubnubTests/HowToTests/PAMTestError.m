@@ -54,8 +54,8 @@
     [super setUp];
     [PubNub setDelegate:self];
 	pnChannels = [PNChannel channelsWithNames:@[@"ch1", @"ch2"]];
-	authorizationKey = [NSString stringWithFormat:@"a2", [NSDate date]];
-	timeout = 2;
+	authorizationKey = [NSString stringWithFormat:@"a2" /*, [NSDate date]*/];
+	timeout = 10;
 	timeoutHistory = 10;
 	timeoutNewMessage = 10;
 	indexMessage = 0;
@@ -224,7 +224,7 @@
 }
 
 - (void)tearDown {
-	[NSThread sleepForTimeInterval:1.0];
+	[NSThread sleepForTimeInterval:0.1];
 }
 
 -(void)kPNClientSubscriptionDidCompleteNotification:(NSNotification*)notification {
@@ -310,13 +310,13 @@
 			STAssertNil( subscriptionError, @"subscriptionError %@", subscriptionError);
 			STAssertEquals( pnChannels.count, channels.count, @"pnChannels.count %d, channels.count %d", pnChannels.count, channels.count);
 		}
-		else 
+		else
 			STAssertNotNil( subscriptionError, @"request must return error %@", subscriptionError);
 
 		NSTimeInterval interval = -[start timeIntervalSinceNow];
 		NSLog(@"subscribeOnChannels interval %f", interval);
 		STAssertTrue( interval < [PubNub sharedInstance].configuration.subscriptionRequestTimeout+1, @"Timeout error, %f instead of %f", interval, [PubNub sharedInstance].configuration.subscriptionRequestTimeout);
-	}]; 
+	}];
 	for( int j=0; /*j<[PubNub sharedInstance].configuration.subscriptionRequestTimeout+1 &&
 				   isBlockCalled == NO*/ j<timeout; j++ )
 		[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];

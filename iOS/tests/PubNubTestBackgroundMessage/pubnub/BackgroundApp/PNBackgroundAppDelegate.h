@@ -13,15 +13,18 @@
 	CLLocationManager *locationManager;
 	int currentInterval;
 	int countNewMessage;
+	BOOL isWillRestoreSubscriptionOnChannelsDelegate;
+	BOOL isDidRestoreSubscriptionOnChannelsDelegate;
+	int countSession;
 }
-
-
 
 #pragma mark Properties
 
 @property (nonatomic, strong) UIWindow *window;
 @property NSString *lastTimeToken;
 @property NSString *lastClientIdentifier;
+
+@property NSDate *lastResetCall;
 
 #pragma mark -
 

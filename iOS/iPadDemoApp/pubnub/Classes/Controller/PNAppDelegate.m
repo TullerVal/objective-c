@@ -8,7 +8,6 @@
 
 #import "PNAppDelegate.h"
 #import "PNIdentificationViewController.h"
-#import "PNPrivateMacro.h"
 
 
 #pragma mark Private interface methods
@@ -123,23 +122,8 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.window.rootViewController = [PNIdentificationViewController new];
     [self.window makeKeyAndVisible];
-    
+
     [self initializePubNubClient];
-    [PubNub setConfiguration:[PNConfiguration defaultConfiguration]];
-    [PubNub connect];
-    [PubNub subscribeOnChannel:[PNChannel channelWithName:@"iosdev2"] withCompletionHandlingBlock:^(PNSubscriptionProcessState state, NSArray *subscribedChannels,
-                                                                                                    PNError *subscribeError) {
-        
-        [PubNub enablePresenceObservationForChannels:subscribedChannels
-                         withCompletionHandlingBlock:^(NSArray *channelsWithPresence, PNError *presenceEnabledError) {
-                             
-                             [PubNub disablePresenceObservationForChannels:channelsWithPresence
-                                               withCompletionHandlingBlock:^(NSArray *channelsWithOutPresence, PNError *presenceDisableError) {
-                                 
-                                                   NSLog(@"IS ENABLED? %@", [PubNub isPresenceObservationEnabledForChannel:[channelsWithOutPresence lastObject]] ? @"YES" : @"NO");
-                             }];
-                         }];
-    }];
     
     return YES;
 }
@@ -147,7 +131,6 @@
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     
     // You are free to register channel for push notifications right from this callback or store device push token in property and use it later.
-    [PubNub enablePushNotificationsOnChannel:[PNChannel channelWithName:@"iosdev"] withDevicePushToken:deviceToken];
 }
 
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
@@ -281,6 +264,30 @@
     PNLog(PNLogGeneralLevel, self, @"PubNub client disconnected from PubNub origin at: %@", origin);
 }
 
+- (void)pubnubClient:(PubNub *)client didReceiveClientState:(PNClient *)remoteClient {
+
+    PNLog(PNLogGeneralLevel, self, @"PubNub client successfully received state for client %@ on channel %@: %@ ",
+          remoteClient.identifier, remoteClient.channel, remoteClient.data);
+}
+
+- (void)pubnubClient:(PubNub *)client clientStateRetrieveDidFailWithError:(PNError *)error {
+
+    PNLog(PNLogGeneralLevel, self, @"PubNub client did fail to receive state for client %@ on channel %@ because of error: %@",
+            ((PNClient *)error.associatedObject).identifier, ((PNClient *)error.associatedObject).channel, error);
+}
+
+- (void)pubnubClient:(PubNub *)client didUpdateClientState:(PNClient *)remoteClient {
+
+    PNLog(PNLogGeneralLevel, self, @"PubNub client successfully updated state for client %@ at channel %@: %@ ",
+          remoteClient.identifier, remoteClient.channel, remoteClient.data);
+}
+
+- (void)pubnubClient:(PubNub *)client clientStateUpdateDidFailWithError:(PNError *)error {
+
+    PNLog(PNLogGeneralLevel, self, @"PubNub client did fail to update state for client %@ at channel %@ because of error: %@",
+            ((PNClient *)error.associatedObject).identifier, ((PNClient *)error.associatedObject).channel, error);
+}
+
 - (void)pubnubClient:(PubNub *)client didSubscribeOnChannels:(NSArray *)channels {
 
     PNLog(PNLogGeneralLevel, self, @"PubNub client successfully subscribed on channels: %@", channels);
@@ -396,6 +403,20 @@ didFailParticipantsListDownloadForChannel:(PNChannel *)channel
 
     PNLog(PNLogGeneralLevel, self, @"PubNub client failed to download participants list for channel %@ because of error: %@",
           channel, error);
+}
+
+- (void)pubnubClient:(PubNub *)client didReceiveParticipantChannelsList:(NSArray *)participantChannelsList
+       forIdentifier:(NSString *)clientIdentifier {
+
+    PNLog(PNLogGeneralLevel, self, @"PubNub client received participant channels list for identifier %@: %@",
+          participantChannelsList, clientIdentifier);
+}
+
+- (void)pubnubClient:(PubNub *)client didFailParticipantChannelsListDownloadForIdentifier:(NSString *)clientIdentifier
+           withError:(PNError *)error {
+
+    PNLog(PNLogGeneralLevel, self, @"PubNub client failed to download participant channels list for identifier %@ "
+            "because of error: %@", clientIdentifier, error);
 }
 
 - (NSNumber *)shouldResubscribeOnConnectionRestore {

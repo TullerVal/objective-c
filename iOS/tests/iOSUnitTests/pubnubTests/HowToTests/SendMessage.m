@@ -8,7 +8,6 @@
 
 #import <SenTestingKit/SenTestingKit.h>
 
-#import "HowToTests.h"
 #import "PNBaseRequest.h"
 #import "PNBaseRequest+Protected.h"
 
@@ -144,13 +143,13 @@
 	////	[messages addObject: @"0 \7"];
 	//	[messages addObject: @"\\"];
 	[messages addObject: @" sl asdfas fdas"];
-	for( unsigned char i=0; i<255; i++ )
+	for( unsigned char i=34; i<255; i++ )
 		[messages addObject: [NSString stringWithFormat: @"[\"%d %c %c%c%c %d\"]", (int)i, i, i, i, i, (int)i]];
 	//	NSString *str = @"";
 	//	for( int i=4000; i<5000; i++ )
 	//		str = [str stringByAppendingFormat: @"\\u%d ", i];
 	//	NSLog(@"str\n\n @\"%@\"\n\n", str);
-
+//mess	__NSCFString *	@"["1   1"]"	0x08e593a0
 	//	messages = [NSMutableArray array];
 	[messages addObject:@"[[]]"];
 	[messages addObject:@"[{}]"];
@@ -199,8 +198,7 @@
 
     semaphore = dispatch_semaphore_create(0);
 	[PubNub subscribeOnChannels: pnChannels
-	withCompletionHandlingBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *subscriptionError)
-	 {
+	withCompletionHandlingBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *subscriptionError) {
 		 dispatch_semaphore_signal(semaphore);
 		 STAssertNil( subscriptionError, @"subscriptionError %@", subscriptionError);
 		 STAssertEquals( pnChannels.count, channels.count, @"pnChannels.count %d, channels.count %d", pnChannels.count, channels.count);
@@ -213,7 +211,7 @@
 
 - (void)tearDown {
 	[super tearDown];
-	[NSThread sleepForTimeInterval:1.0];
+	[NSThread sleepForTimeInterval:0.1];
 }
 
 - (void)pubnubClient:(PubNub *)client willSendMessage:(PNMessage *)message {
@@ -237,10 +235,12 @@
 }
 
 -(void)sendNextMessage {
-	NSLog(@"sendNextMessage |%@|", messages[0]);
-	[PubNub sendMessage:messages[0] toChannel:pnChannels[0] withCompletionBlock:^(PNMessageState messageSendingState, id data) {
+	NSObject *message = messages[0];
+	NSLog(@"sendNextMessage |%@|", message);
+	[PubNub sendMessage:message toChannel:pnChannels[0] withCompletionBlock:^(PNMessageState messageSendingState, id data) {
+		NSLog(@"sendMessage %lu", messageSendingState);
+//		NSObject *mess = message;
 		STAssertTrue( messageSendingState != 2, @"error %@\nmessage: %@", data, messages[0]);
-		NSLog(@"sendMessage %d", messageSendingState);
 
 		if( messageSendingState != PNMessageSending ) {
 			[messages removeObjectAtIndex: 0];

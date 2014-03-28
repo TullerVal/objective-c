@@ -21,22 +21,27 @@
 
 	UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController: [[UITableViewController alloc] init]];
 	self.window.rootViewController = navController;
+	navController.topViewController.navigationItem.title = @"PubNub";
 
 
+	isWillRestoreSubscriptionOnChannelsDelegate = YES;
+	isDidRestoreSubscriptionOnChannelsDelegate = YES;
     [self initializePubNubClient];
 
 	currentInterval = 10;
+	self.lastResetCall = [NSDate date];
 
 	[PubNub clientIdentifier];
 	countNewMessage = 1;
+	countSession = 0;
 	[self connect];
 
     return YES;
 }
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
-	NSLog(@"openURL %@, %@, %@", url, sourceApplication, annotation);
-	[self performSelector:@selector(openUrl) withObject:nil afterDelay:15];
+//	NSLog(@"openURL %@, %@, %@", url, sourceApplication, annotation);
+	[self performSelector:@selector(openUrl) withObject:nil afterDelay:20];
 	return YES;
 }
 
@@ -50,9 +55,20 @@
 
 
 -(void)openUrl {
-	if( countNewMessage != 1 )
+	if( countNewMessage == 2 && countSession%2 == 0 )
+		[self performSelector: @selector(errorSelectorExtraMessage)];
+	if( countNewMessage != 1 && countSession%2 == 0 )
 		[self performSelector: @selector(errorSelectorCountNewMessage)];
+	if( isWillRestoreSubscriptionOnChannelsDelegate == NO )
+		[self performSelector: @selector(errorSelectorWillRestore)];
+	if( isDidRestoreSubscriptionOnChannelsDelegate == NO )
+		[self performSelector: @selector(errorSelectorDidRestore)];
 	countNewMessage = 0;
+	countSession++;
+	isWillRestoreSubscriptionOnChannelsDelegate = NO;
+	isDidRestoreSubscriptionOnChannelsDelegate = NO;
+
+	NSLog(@"open Mediator---------------------------------------------------------------------------");
 	NSString *url = [NSString stringWithFormat: @"mediatorWithMessage://"];
 	[[UIApplication sharedApplication] openURL: [NSURL URLWithString: url]];
 }
@@ -158,7 +174,9 @@
 }
 
 - (void)connect {
-    [PubNub setConfiguration:[PNConfiguration defaultConfiguration]];
+	PNConfiguration *configuration = [PNConfiguration defaultConfiguration];
+	configuration.presenceExpirationTimeout = 5;
+    [PubNub setConfiguration: configuration];
     [PubNub connectWithSuccessBlock:^(NSString *origin) {
 
 		PNChannel *pnChannel = [PNChannel channelWithName: [NSString stringWithFormat: @"mediatorWithMessage"]];
@@ -182,7 +200,6 @@
 }
 
 - (NSNumber *)shouldRestoreSubscriptionFromLastTimeToken {
-    NSNumber *shouldRestoreSubscriptionFromLastTimeToken = @(YES);
     NSString *lastTimeToken = @"0";
 
     if ([[PubNub subscribedChannels] count] > 0) {
@@ -191,11 +208,10 @@
 		self.lastClientIdentifier = [PubNub clientIdentifier];
     }
 
+	BOOL shouldRestoreSubscriptionFromLastTimeToken = (countSession%2 == 0);
     NSLog( @"PubNub client should restore subscription from last time token? %@ (last time token: %@)",
-		  [shouldRestoreSubscriptionFromLastTimeToken boolValue]?@"YES":@"NO", lastTimeToken);
-
-
-    return shouldRestoreSubscriptionFromLastTimeToken;
+		  shouldRestoreSubscriptionFromLastTimeToken?@"YES":@"NO", lastTimeToken);
+    return @(shouldRestoreSubscriptionFromLastTimeToken);
 }
 
 - (void)handleClientConnectionStateChange:(NSNotification *)notification {
@@ -226,5 +242,18 @@
 	if( [string rangeOfString: @"mediatorWithMessage"].location != NSNotFound )
 		countNewMessage++;
 }
+
+- (void)pubnubClient:(PubNub *)client willRestoreSubscriptionOnChannels:(NSArray *)channels {
+	NSLog(@"WillRestoreSubscriptionOnChannelsDelegate");
+	isWillRestoreSubscriptionOnChannelsDelegate = YES;
+}
+
+- (void)pubnubClient:(PubNub *)client didRestoreSubscriptionOnChannels:(NSArray *)channels {
+	NSLog(@"DidRestoreSubscriptionOnChannelsDelegate");
+	isDidRestoreSubscriptionOnChannelsDelegate = YES;
+	if( countNewMessage > 0 )
+		[self performSelector: @selector(errorSelectorExpectMessage)];
+}
+
 
 @end

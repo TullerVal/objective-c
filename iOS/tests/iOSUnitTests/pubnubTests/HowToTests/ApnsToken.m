@@ -19,6 +19,14 @@
 #import "PNWriteBuffer.h"
 #import "PNConstants.h"
 
+#import "PNPushNotificationsRemoveRequest.h"
+#import "PNPushNotificationsEnabledChannelsRequest.h"
+#import "PNPushNotificationsStateChangeRequest.h"
+
+//<96cce5c5 b331e0dc 5c9b8985 b020b6a6 77d2ec22 9c527d27 0f9b5b0a fdc0b44f>
+//96cce5c5b331e0dc5c9b8985b020b6a677d2ec229c527d270f9b5b0afdc0b44f
+#define kToken		@"96cce5c5b331e0dc5c9b8985b020b6a677d2ec229c527d270f9b5b0afdc0b44f"
+
 @interface ApnsToken : SenTestCase <PNDelegate>{
 	NSArray *pnChannels;
 	BOOL pNClientPushNotificationEnableDidCompleteNotification;
@@ -37,7 +45,7 @@
 {
     [super setUp];
     [PubNub setDelegate:self];
-	pnChannels = [PNChannel channelsWithNames:@[@"iosdev", @"andoirddev", @"wpdev", @"ubuntudev", @"1"]];
+	pnChannels = [PNChannel channelsWithNames:@[@"iosdev", @"andoirddev"]];
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(kPNClientPushNotificationEnableDidCompleteNotification:)
@@ -62,11 +70,6 @@
 											   object:nil];
 }
 
-- (void)tearDown
-{
-    // Put teardown code here; it will be run once, after the last test case.
-    [super tearDown];
-}
 
 //////////////////////////////////////////////////////////////////
 - (void)kPNClientPushNotificationEnableDidCompleteNotification:(NSNotification *)__unused notification {
@@ -95,8 +98,7 @@
 }
 //////////////////////////////////////////////////////////////////
 
-- (void)test10Connect
-{
+- (void)test10Connect {
 	[PubNub disconnect];
 
 	int64_t delayInSeconds = 2;
@@ -106,7 +108,7 @@
 
 		[PubNub setDelegate:self];
 		//		[PubNub setConfiguration: [PNConfiguration defaultConfiguration]];
-		PNConfiguration *configuration = [PNConfiguration configurationForOrigin:@"pubsub.pubnub.com" publishKey:@"pub-c-bb4a4d9b-21b1-40e8-a30b-04a22f5ef154" subscribeKey:@"sub-c-6b43405c-3694-11e3-a5ee-02ee2ddab7fe" secretKey: @"sec-c-ZmNlNzczNTEtOGUwNS00MmRjLWFkMjQtMjJiOTA2MjY2YjI5" cipherKey: nil authorizationKey: @"authorizationKey"];
+		PNConfiguration *configuration = [PNConfiguration configurationForOrigin:@"pubsub.pubnub.com" publishKey:@"pub-c-bb4a4d9b-21b1-40e8-a30b-04a22f5ef154" subscribeKey:@"sub-c-6b43405c-3694-11e3-a5ee-02ee2ddab7fe" secretKey: @"sec-c-ZmNlNzczNTEtOGUwNS00MmRjLWFkMjQtMjJiOTA2MjY2YjI5" cipherKey: nil authorizationKey: @"authorization_key"];
 		[PubNub setConfiguration: configuration];
 
 		[PubNub connectWithSuccessBlock:^(NSString *origin) {
@@ -129,18 +131,70 @@
 	}];
 	for( int j=0; j<10; j++ )
 		[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
-
+	[self t15PushTokenLowercase];
 	[self t20SubscribeOnChannels];
 	[self t30EnablePushNotificationsOnChannels];
+	[self t35SendMessage];
 	[self t40DisablePushNotificationsOnChannels];
+	[PubNub revokeAccessRightsForApplication];
+
+	[PubNub grantAllAccessRightsForChannels: pnChannels forPeriod: 10 withCompletionHandlingBlock:^(PNAccessRightsCollection *collection, PNError *error) {
+		STAssertNil( error, @"grantAllAccessRightsForChannels %@", error);
+	}];
+	for( int j=0; j<10; j++ )
+		[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
+	[self t15PushTokenLowercase];
+	[self t20SubscribeOnChannels];
+	[self t30EnablePushNotificationsOnChannels];
+	[self t35SendMessage];
+	[self t40DisablePushNotificationsOnChannels];
+	[PubNub revokeAccessRightsForChannels: pnChannels];
+
+	for( int i=0; i<pnChannels.count; i++)
+		[PubNub grantAllAccessRightsForChannel: pnChannels[i] forPeriod: 10 client: @"authorization_key"];
+	for( int j=0; j<10; j++ )
+		[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
+	[self t15PushTokenLowercase];
+	[self t20SubscribeOnChannels];
+	[self t30EnablePushNotificationsOnChannels];
+	[self t35SendMessage];
+	[self t40DisablePushNotificationsOnChannels];
+	for( int i=0; i<pnChannels.count; i++)
+		[PubNub revokeAccessRightsForChannel: pnChannels[i] client: @"authorization_key"];
 }
 
-- (void)t20SubscribeOnChannels
-{
+-(void)t35SendMessage {
+	for( int i=0; i<pnChannels.count; i++ )	{
+		__block PNMessageState state = PNMessageSending;
+		NSString *message = [NSString stringWithFormat: @"Hello PubNub %d", i];
+		[PubNub sendMessage: message toChannel:pnChannels[i] withCompletionBlock:^(PNMessageState messageSendingState, id data) {
+			state = messageSendingState;
+			STAssertFalse(messageSendingState==PNMessageSendingError, @"messageSendingState==PNMessageSendingError %@", data);
+		}];
+
+		for( int j=0; state == PNMessageSending; j++ )
+			[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
+		STAssertTrue( state == PNMessageSent, @"error");
+	}
+}
+
+
+-(void)t15PushTokenLowercase {
+	NSString *pushUpperCase = @"PuSh UpperCase 123ABCDE";
+	PNPushNotificationsRemoveRequest *requestRemove = [PNPushNotificationsRemoveRequest requestWithDevicePushToken: [pushUpperCase dataUsingEncoding:NSUTF8StringEncoding]];
+	STAssertTrue( [[requestRemove resourcePath] isEqualToString: [[requestRemove resourcePath] lowercaseString]] == YES, @"");
+
+	PNPushNotificationsEnabledChannelsRequest *requestEnabled = [PNPushNotificationsEnabledChannelsRequest requestWithDevicePushToken: [pushUpperCase dataUsingEncoding:NSUTF8StringEncoding]];
+	STAssertTrue( [[requestEnabled resourcePath] isEqualToString: [[requestEnabled resourcePath] lowercaseString]] == YES, @"");
+
+	PNPushNotificationsStateChangeRequest *requestChange = [PNPushNotificationsStateChangeRequest requestWithDevicePushToken: [pushUpperCase dataUsingEncoding:NSUTF8StringEncoding] toState: @"" forChannels: @[]];
+	STAssertTrue( [[requestChange resourcePath] isEqualToString: [[requestChange resourcePath] lowercaseString]] == YES, @"");
+}
+
+- (void)t20SubscribeOnChannels {
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
 	[PubNub subscribeOnChannels: pnChannels
-	withCompletionHandlingBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *subscriptionError)
-	 {
+	withCompletionHandlingBlock:^(PNSubscriptionProcessState state, NSArray *channels, PNError *subscriptionError) {
 		 dispatch_semaphore_signal(semaphore);
 	 }];
     // Run loop
@@ -184,7 +238,7 @@
 	isCompletionBlockCalled = NO;
 	pNClientPushNotificationEnableDidCompleteNotification = NO;
 	pNClientPushNotificationEnableDidFailNotification = NO;
-	pushToken = [@"12345678123456781234567812345678" dataUsingEncoding: NSUTF8StringEncoding];
+	pushToken = [self dataFromHex: kToken];
 	[PubNub enablePushNotificationsOnChannels: pnChannels withDevicePushToken:pushToken andCompletionHandlingBlock:
 	 ^(NSArray *channels, PNError *error) {
 		 isCompletionBlockCalled = YES;
@@ -211,14 +265,14 @@
 	 }];
 	for( int j=0; j<[PubNub sharedInstance].configuration.subscriptionRequestTimeout+1 /*||
 																						(isCompletionBlockCalled == NO || pNClientPushNotificationDisableDidFailNotification == NO)*/; j++ )
-		[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
+	[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
 	STAssertTrue( isCompletionBlockCalled, @"completion block not called");
 	STAssertTrue( pNClientPushNotificationDisableDidFailNotification, @"notification not called");
 
 
 	isCompletionBlockCalled = NO;
 	pNClientPushNotificationChannelsRetrieveDidCompleteNotification = 0;
-	pushToken = [@"12345678123456781234567812345678" dataUsingEncoding: NSUTF8StringEncoding];
+	pushToken = [self dataFromHex: kToken];
 	[PubNub requestPushNotificationEnabledChannelsForDevicePushToken: pushToken withCompletionHandlingBlock:
 	 ^(NSArray *channels, PNError *error) {
 		 isCompletionBlockCalled = YES;
@@ -247,7 +301,7 @@
 
 	isCompletionBlockCalled = NO;
 	pNClientPushNotificationChannelsRetrieveDidCompleteNotification = 0;
-	pushToken = [@"12345678123456781234567812345678" dataUsingEncoding: NSUTF8StringEncoding];
+	pushToken = [self dataFromHex: kToken];
 	[PubNub requestPushNotificationEnabledChannelsForDevicePushToken: pushToken withCompletionHandlingBlock:
 	 ^(NSArray *channels, PNError *error) {
 		 isCompletionBlockCalled = YES;
@@ -259,6 +313,21 @@
 		[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
 	STAssertTrue( isCompletionBlockCalled, @"completion block not called");
 	STAssertTrue( pNClientPushNotificationChannelsRetrieveDidCompleteNotification==1, @"notification must be called once");
+}
+
+-(NSData*)dataFromHex:(NSString*)command {
+	command = [command stringByReplacingOccurrencesOfString:@" " withString:@""];
+	NSMutableData *commandToSend= [[NSMutableData alloc] init];
+	unsigned char whole_byte;
+	char byte_chars[3] = {'\0','\0','\0'};
+	for (int i = 0; i < ([command length] / 2); i++) {
+		byte_chars[0] = [command characterAtIndex:i*2];
+		byte_chars[1] = [command characterAtIndex:i*2+1];
+		whole_byte = strtol(byte_chars, NULL, 16);
+		[commandToSend appendBytes:&whole_byte length:1];
+	}
+	NSLog(@"%@", commandToSend);
+	return commandToSend;
 }
 
 @end
