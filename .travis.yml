@@ -11,14 +11,15 @@ before_install:
 - cd .bin/
 - ./copyLibs.sh
 - cd ..
+- fail=0
 
 
 language: objective-c
 
-fail=0
 
 script:
-- if xcodebuild build -project cocoa/PubNubMacOSTestApplication/PubNubMacOSTestApplication.xcodeproj > ./coverage/log_MacFail.txt; then echo "success"; mv ./coverage/log_MacFail.txt ./coverage/log_MacSuccess.txt; else echo "fail"; fail=1; fi
+
+— if xcodebuild build -project cocoa/PubNubMacOSTestApplication/PubNubMacOSTestApplication.xcodeproj > ./coverage/log_MacFail.txt; then echo "success"; mv ./coverage/log_MacFail.txt ./coverage/log_MacSuccess.txt; else echo "fail"; fail=1; fi
 
 - if xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 > ./coverage/log_iOSFail.txt; then echo "success"; mv ./coverage/log_iOSFail.txt ./coverage/log_iOSSuccess.txt; else echo "fail"; fail=1; fi
 
@@ -28,7 +29,7 @@ script:
 
 # - if xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme travis-ci -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_iOSFail.txt; then echo "success"; mv ./coverage/log_Test_iOSFail.txt ./coverage/log_Test_iOSSuccess.txt; else echo "fail"; fail=1; fi
 
-- if [ "$fail" = "1" ]; then mkdir forFail; mkdir forFail; fi
+- if [ "$fail" = "1" ]; then mkdir forFail; mkdir forFail; echo "Please, check logs"; fi
 
 after_failure:
 - echo "fail" > ./coverage/fail.txt
