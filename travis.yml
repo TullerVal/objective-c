@@ -29,7 +29,7 @@ script:
 
 # - if xcodebuild test -project iOS/tests/iOSUnitTests/pubnub.xcodeproj -scheme travis-ci -sdk iphonesimulator ONLY_ACTIVE_ARCH=YES -configuration Debug > ./coverage/log_Test_iOSFail.txt; then echo "success"; mv ./coverage/log_Test_iOSFail.txt ./coverage/log_Test_iOSSuccess.txt; else echo "fail"; fail=1; fi
 
-- if [ "$fail" = "1" ]; then echo "Please, check logs"; exit 1; fi
+- if [ "$fail" = "1" ]; then echo "Please, check logs"; xcodebuild build -project fail.xcodeproj; fi
 
 after_failure:
 - echo "fail" > ./coverage/fail.txt
