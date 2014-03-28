@@ -19,7 +19,7 @@ cd ..
 
 #add, commit and push files
 git add -f .
-git commit -m "Travis build $TRAVIS_BUILD_NUMBER pushed to gh-pages (branch $TRAVIS_BRANCH, commit $TRAVIS_COMMIT (build number $TRAVIS_BUILD_NUMBER))”
+git commit -m "Travis build $TRAVIS_BUILD_NUMBER pushed to gh-pages (branch $TRAVIS_BRANCH, commit $TRAVIS_COMMIT (build number $TRAVIS_BUILD_NUMBER))"
 git push -fq origin gh-pages
 
 echo -e "Done magic with coverage\n"
