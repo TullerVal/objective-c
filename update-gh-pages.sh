@@ -1,7 +1,5 @@
 echo -e "Starting to update gh-pages\n"
 
-echo fail $fail
-
 cp -R coverage $HOME/coverage
 
 cd $HOME
@@ -12,7 +10,7 @@ git clone --quiet --branch=gh-pages https://cf75effcf9d0ba6e5fdb3d7d6158f1a8e405
 
 date
 cd gh-pages
-if [ "$fail" = "1" ]; then mkdir `date +%Y.%m.%d_%H.%m_№$TRAVIS_BUILD_NUMBER`_fail; cd `date +%Y.%m.%d_%H.%m_№$TRAVIS_BUILD_NUMBER`_fail; else mkdir `date +%Y.%m.%d_%H.%m_№$TRAVIS_BUILD_NUMBER`_ok; cd `date +%Y.%m.%d_%H.%m_№$TRAVIS_BUILD_NUMBER`_ok; fi
+if [ "$1" = "1" ]; then mkdir `date +%Y.%m.%d_%H.%M_№$TRAVIS_BUILD_NUMBER`_fail; cd `date +%Y.%m.%d_%H.%M_№$TRAVIS_BUILD_NUMBER`_fail; else mkdir `date +%Y.%m.%d_%H.%M_№$TRAVIS_BUILD_NUMBER`_ok; cd `date +%Y.%m.%d_%H.%M_№$TRAVIS_BUILD_NUMBER`_ok; fi
 
 ls -all
 rm -R *
