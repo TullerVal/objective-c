@@ -33,21 +33,17 @@ script:
 
 - if xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 clean install > ./coverage/log_iOSFail.txt; then echo "success"; mv ./coverage/log_iOSFail.txt ./coverage/log_iOSSuccess.txt; else echo "fail"; fail=1; fi
 
-- if xcodebuild build -project iOS/iPadDemoApp/pubnub.xcodeproj -sdk iphoneos7.1 ONLY_ACTIVE_ARCH=NO ARCHS="armv6 armv7 armv7s" -configuration Debug TARGETED_DEVICE_FAMILY=1,2 ARCHS="armv6 armv7 armv7s" clean install > ./coverage/iOSiPhoneFail.txt; then echo "success"; mv ./coverage/iOSiPhoneFail.txt ./coverage/iOSiPhoneSuccess.txt; else echo "fail"; fail=1; fi
+- if xcodebuild build -project ./iOS/HOWTO/APNSVideo/demo9/demo9.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 clean install > ./coverage/iOSDemoFail.txt; then echo "success"; mv ./coverage/iOSDemoFail.txt ./coverage/iOSDemoSuccess.txt; else echo "fail"; fail=1; fi
 
-- if xcodebuild build -project ./iOS/HOWTO/APNSVideo/demo9/demo9.xcodeproj ONLY_ACTIVE_ARCH=NO ARCHS="armv6 armv7 armv7s" -configuration Debug TARGETED_DEVICE_FAMILY=1,2 ARCHS="armv6 armv7 armv7s" clean install > ./coverage/iOSDemoFail.txt; then echo "success"; mv ./coverage/iOSDemoFail.txt ./coverage/iOSDemoSuccess.txt; else echo "fail"; fail=1; fi
+- if xcodebuild build -project ./iOS/HOWTO/CallsWithoutBlocks/CallsWithoutBlocks.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 clean install > ./coverage/iOSCallsWithoutBlocksFail.txt; then echo "success"; mv ./coverage/iOSCallsWithoutBlocksFail.txt ./coverage/iOSCallsWithoutBlocksSuccess.txt; else echo "fail"; fail=1; fi
 
-- if xcodebuild build -project ./iOS/HOWTO/APNSVideo/demo9/demo9.xcodeproj ONLY_ACTIVE_ARCH=NO ARCHS="armv6 armv7 armv7s" -configuration Debug TARGETED_DEVICE_FAMILY=1,2 ARCHS="armv6 armv7 armv7s" clean install > ./coverage/iOSDemoFail.txt; then echo "success"; mv ./coverage/iOSDemoFail.txt ./coverage/iOSDemoSuccess.txt; else echo "fail"; fail=1; fi
+- if xcodebuild build -project ./iOS/HOWTO/ClientSidePresence/ClientSidePresence.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 clean install > ./coverage/iOSClientSidePresenceFail.txt; then echo "success"; mv ./coverage/iOSClientSidePresenceFail.txt ./coverage/iOSClientSidePresenceSuccess.txt; else echo "fail"; fail=1; fi
 
-- if xcodebuild build -project ./iOS/HOWTO/CallsWithoutBlocks/CallsWithoutBlocks.xcodeproj ONLY_ACTIVE_ARCH=NO ARCHS="armv6 armv7 armv7s" -configuration Debug TARGETED_DEVICE_FAMILY=1,2 ARCHS="armv6 armv7 armv7s" clean install > ./coverage/iOSCallsWithoutBlocksFail.txt; then echo "success"; mv ./coverage/iOSCallsWithoutBlocksFail.txt ./coverage/iOSCallsWithoutBlocksSuccess.txt; else echo "fail"; fail=1; fi
+- if xcodebuild build -project ./iOS/HOWTO/HelloWorld/pubnubDemoExample.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 clean install > ./coverage/iOSpubnubDemoExampleFail.txt; then echo "success"; mv ./coverage/iOSpubnubDemoExampleFail.txt ./coverage/iOSpubnubDemoExampleSuccess.txt; else echo "fail"; fail=1; fi
 
-- if xcodebuild build -project ./iOS/HOWTO/ClientSidePresence/ClientSidePresence.xcodeproj ONLY_ACTIVE_ARCH=NO ARCHS="armv6 armv7 armv7s" -configuration Debug TARGETED_DEVICE_FAMILY=1,2 ARCHS="armv6 armv7 armv7s" clean install > ./coverage/iOSClientSidePresenceFail.txt; then echo "success"; mv ./coverage/iOSClientSidePresenceFail.txt ./coverage/iOSClientSidePresenceSuccess.txt; else echo "fail"; fail=1; fi
+- if xcodebuild build -project ./iOS/HOWTO/SimpleSubscribe/PubNubDemo.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 clean install > ./coverage/iOSSimpleSubscribeFail.txt; then echo "success"; mv ./coverage/iOSSimpleSubscribeFail.txt ./coverage/iOSSimpleSubscribeSuccess.txt; else echo "fail"; fail=1; fi
 
-- if xcodebuild build -project ./iOS/HOWTO/HelloWorld/pubnubDemoExample.xcodeproj ONLY_ACTIVE_ARCH=NO ARCHS="armv6 armv7 armv7s" -configuration Debug TARGETED_DEVICE_FAMILY=1,2 ARCHS="armv6 armv7 armv7s" clean install > ./coverage/iOSpubnubDemoExampleFail.txt; then echo "success"; mv ./coverage/iOSpubnubDemoExampleFail.txt ./coverage/iOSpubnubDemoExampleSuccess.txt; else echo "fail"; fail=1; fi
-
-- if xcodebuild build -project ./iOS/HOWTO/SimpleSubscribe/PubNubDemo.xcodeproj ONLY_ACTIVE_ARCH=NO ARCHS="armv6 armv7 armv7s" -configuration Debug TARGETED_DEVICE_FAMILY=1,2 ARCHS="armv6 armv7 armv7s" clean install > ./coverage/iOSSimpleSubscribeFail.txt; then echo "success"; mv ./coverage/iOSSimpleSubscribeFail.txt ./coverage/iOSSimpleSubscribeSuccess.txt; else echo "fail"; fail=1; fi
-
-- if xcodebuild build -project ./iOS/HOWTO/ULSMethods/ULSMethods.xcodeproj ONLY_ACTIVE_ARCH=NO ARCHS="armv6 armv7 armv7s" -configuration Debug TARGETED_DEVICE_FAMILY=1,2 ARCHS="armv6 armv7 armv7s" clean install > ./coverage/iOSULSMethodsFail.txt; then echo "success"; mv ./coverage/iOSULSMethodsFail.txt ./coverage/iOSULSMethodsSuccess.txt; else echo "fail"; fail=1; fi
+- if xcodebuild build -project ./iOS/HOWTO/ULSMethods/ULSMethods.xcodeproj -sdk iphonesimulator ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 clean install > ./coverage/iOSULSMethodsFail.txt; then echo "success"; mv ./coverage/iOSULSMethodsFail.txt ./coverage/iOSULSMethodsSuccess.txt; else echo "fail"; fail=1; fi
 
 
 
