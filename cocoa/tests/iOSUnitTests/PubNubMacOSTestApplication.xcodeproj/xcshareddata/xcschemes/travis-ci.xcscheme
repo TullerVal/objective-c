@@ -66,6 +66,12 @@
                   Identifier = "HistoryPamTest">
                </Test>
                <Test
+                  Identifier = "HowToSleepTest">
+               </Test>
+               <Test
+                  Identifier = "HowToTests">
+               </Test>
+               <Test
                   Identifier = "HowToTestsCompressed">
                </Test>
                <Test
@@ -76,33 +82,6 @@
                </Test>
                <Test
                   Identifier = "PAMTestError">
-               </Test>
-               <Test
-                  Identifier = "PNAccessRightOptionsTest">
-               </Test>
-               <Test
-                  Identifier = "PNAccessRightsCollectionTest">
-               </Test>
-               <Test
-                  Identifier = "PNAccessRightsInformationTest">
-               </Test>
-               <Test
-                  Identifier = "PNActionResponseParserTest">
-               </Test>
-               <Test
-                  Identifier = "PNChannelConstructor">
-               </Test>
-               <Test
-                  Identifier = "PNChannelEventsResponseParserTest">
-               </Test>
-               <Test
-                  Identifier = "PNChannelHistoryParserTest">
-               </Test>
-               <Test
-                  Identifier = "PNChannelPresenceTest">
-               </Test>
-               <Test
-                  Identifier = "PNChannelTest">
                </Test>
                <Test
                   Identifier = "PNConfigurationTest">
@@ -162,9 +141,6 @@
                   Identifier = "PNWriteBufferTest">
                </Test>
                <Test
-                  Identifier = "pubnubChaosTest">
-               </Test>
-               <Test
                   Identifier = "SendBigMessage">
                </Test>
                <Test
@@ -178,6 +154,9 @@
                </Test>
                <Test
                   Identifier = "W_ChaosTest">
+               </Test>
+               <Test
+                  Identifier = "pubnubChaosTest">
                </Test>
             </SkippedTests>
          </TestableReference>

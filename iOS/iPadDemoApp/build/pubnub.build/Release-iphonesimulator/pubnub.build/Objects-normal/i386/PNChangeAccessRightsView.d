@@ -1,31 +1,5 @@
 dependencies: \
   /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/Classes/View/PNChangeAccessRightsView.m \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/pubnub-Prefix.pch \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/PNImports.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNAccessRightsInformation.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/PNStructures.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNAccessRightsCollection.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNAccessRightOptions.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Core/PNObservationCenter.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/Channels/Presence/PNChannelPresence.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/Channels/PNChannel.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNConfiguration.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/PNNotifications.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/Channels/Presence/PNPresenceEvent.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNWhereNow.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNHereNow.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/Categories/NSString+PNAddition.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/Categories/NSData+PNAdditions.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Network/PNNetworkHelper.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/PNErrorCodes.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNMessage.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNClient.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/PNMacro.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/Categories/NSDate+PNAdditions.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNError.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Core/PubNub.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Misc/Protocols/PNDelegate.h \
-  /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/libs/PubNub/Data/PNDate.h \
   /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/Classes/View/PNChangeAccessRightsView.h \
   /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/Classes/Misc/Delegates/PNAccessRightsChangeDelegate.h \
   /Users/tuller/work/pubnub\ TullerVal/iOS/iPadDemoApp/pubnub/Classes/View/PNShadowEnableView.h \

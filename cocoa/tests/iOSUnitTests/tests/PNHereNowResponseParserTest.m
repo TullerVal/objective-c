@@ -7,7 +7,6 @@
 //
 
 #import <SenTestingKit/SenTestingKit.h>
-#import "PNHereNowResponseParser+Protected.h"
 #import "PNHereNowResponseParser.h"
 #import "PNResponse.h"
 #import "PNHereNow.h"

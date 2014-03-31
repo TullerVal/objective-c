@@ -5,16 +5,16 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>2B89FE8E-FAF7-42EB-9DB5-3E8402F05897</string>
+	<string>AAA14465-78DE-4530-AFCB-1A1E8E16412B</string>
 	<key>IDESourceControlProjectName</key>
-	<string>CallsWithoutBlocks</string>
+	<string>PubNubDemo</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>609C911F-EFEF-47F8-ACD3-BE4426FBEED6</key>
 		<string>https://github.com/TullerVal/objective-c</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>iOS/HOWTO/CallsWithoutBlocks/CallsWithoutBlocks.xcodeproj/project.xcworkspace</string>
+	<string>iOS/HOWTO/SimpleSubscribe/PubNubDemo.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>609C911F-EFEF-47F8-ACD3-BE4426FBEED6</key>
