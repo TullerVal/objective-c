@@ -222,6 +222,36 @@
                </Test>
             </SkippedTests>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5ACBD38718E9DB970022B91B"
+               BuildableName = "PubNubMacOSTestApplicationTests.xctest"
+               BlueprintName = "PubNubMacOSTestApplicationTests"
+               ReferencedContainer = "container:pubnub.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5ACBD51718E9E4910022B91B"
+               BuildableName = "TestTests.xctest"
+               BlueprintName = "TestTests"
+               ReferencedContainer = "container:pubnub.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5A179C9818E9EAF600CFB9E9"
+               BuildableName = "MacosTests.xctest"
+               BlueprintName = "MacosTests"
+               ReferencedContainer = "container:pubnub.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

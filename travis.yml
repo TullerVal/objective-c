@@ -2,6 +2,7 @@ notifications:
   email:
     recipients:
       - tullerVal@gmail.com
+      - geremy@pubnub.com
     on_success: always
     on_failure: always	
 
@@ -27,7 +28,7 @@ script:
 
 - if xcodebuild build -project cocoa/HOWTO/SimpleSubscribe/PubNubMacOSTestApplication.xcodeproj clean install > ./coverage/macPubNubMacOSTestApplicationFail.txt; then echo "success"; mv ./coverage/macPubNubMacOSTestApplicationFail.txt ./coverage/macPubNubMacOSTestApplicationSuccess.txt; else echo "fail"; fail=1; fi
 
-- if xcodebuild test -project cocoa/tests/iOSUnitTests/PubNubMacOSTestApplication.xcodeproj/ -scheme travis-ci clean install > ./coverage/macTestFail.txt; then echo "success"; mv ./coverage/macTestFail.txt ./coverage/macTestSuccess.txt; else echo "fail"; fail=1; fi
+- if xcodebuild test -project cocoa/tests/iOSUnitTests/PubNubMacOSTestApplication.xcodeproj/ -scheme travis-ci ARCHS=i386 ONLY_ACTIVE_ARCH=YES VALID_ARCHS=i386 clean install > ./coverage/macTestFail.txt; then echo "success"; mv ./coverage/macTestFail.txt ./coverage/macTestSuccess.txt; else echo "fail"; fail=1; fi
 
 
 
