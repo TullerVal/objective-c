@@ -47,6 +47,16 @@
                ReferencedContainer = "container:pubnub.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5ACC5B7918EAC36F00DD6A86"
+               BuildableName = "MacosTests.xctest"
+               BlueprintName = "MacosTests"
+               ReferencedContainer = "container:pubnub.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

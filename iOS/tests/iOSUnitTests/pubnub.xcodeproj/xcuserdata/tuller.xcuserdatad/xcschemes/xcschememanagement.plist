@@ -4,6 +4,21 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>Macos.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+		<key>MacosTestDebug.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
+		<key>MacosTestTravis.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>7</integer>
+		</dict>
 		<key>pubnub.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
@@ -32,6 +47,21 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>5ACC5E0018EAC60200DD6A86</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>5ACC5E1F18EAC60200DD6A86</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>5AFDFD5218EACC2B004FDD28</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>79C32227166DF847006DB535</key>
 		<dict>
 			<key>primary</key>

@@ -10,7 +10,7 @@
 #import "PNBaseRequest.h"
 #import "PNBaseRequest+Protected.h"
 
-#import <OCMock/OCMock.h>
+//#import <OCMock/OCMock.h>
 
 #import "PubNub.h"
 #import "PubNub+Protected.h"
@@ -152,10 +152,6 @@
 
 	[PubNub unsubscribeFromChannels: pnChannels];
 	[self subscribeOnChannelsWithClientState: clientState2];
-
-	for( int j=0; j<6*60; j++ )
-		[[NSRunLoop currentRunLoop] runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0] ];
-
 	[self requestClientStateExpectState: clientState2];
 
 	countkPNClientDidUpdateClientStateNotification = 0;

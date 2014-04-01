@@ -246,9 +246,19 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5A179C9818E9EAF600CFB9E9"
+               BlueprintIdentifier = "5ACC5E1F18EAC60200DD6A86"
                BuildableName = "MacosTests.xctest"
                BlueprintName = "MacosTests"
+               ReferencedContainer = "container:pubnub.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5AFDFD5218EACC2B004FDD28"
+               BuildableName = "MacTest.octest"
+               BlueprintName = "MacTest"
                ReferencedContainer = "container:pubnub.xcodeproj">
             </BuildableReference>
          </TestableReference>
