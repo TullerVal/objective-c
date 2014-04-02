@@ -7,7 +7,7 @@
 //
 
 #import <SenTestingKit/SenTestingKit.h>
-//#import <OCMock/OCMock.h>
+#import <OCMock/OCMock.h>
 #import "PNObservationCenter.h"
 #import "PNObservationCenter+Protected.h"
 
@@ -206,10 +206,10 @@ static struct PNObservationEventsStruct PNObservationEvents = {
 	[center removeOneTimeObserversForEvent: @"clientConnectionStateChangeEvent"];
     STAssertFalse( [center isSubscribedOnClientStateChange: self], @"not empty");
 
-//	id mock = [OCMockObject partialMockForObject: center];
-//	[mock addClientConnectionStateObserver: self withCallbackBlock:^(NSString *__strong s, BOOL b, PNError *__strong e){}];
-//	[[mock expect] addObserver: nil forEvent:nil oneTimeEvent:NO withBlock:nil];
-//	[mock verify];
+	id mock = [OCMockObject partialMockForObject: center];
+	[mock addClientConnectionStateObserver: self withCallbackBlock:^(NSString *__strong s, BOOL b, PNError *__strong e){}];
+	[[mock expect] addObserver: [OCMArg any] forEvent:[OCMArg any] oneTimeEvent:NO withBlock:[OCMArg any]];
+	[mock verify];
 	[center addClientConnectionStateObserver: self withCallbackBlock: ^(NSString *__strong s, BOOL b, PNError *__strong e){}];
 	STAssertTrue( [self isObserver: self presentForEvent: PNObservationEvents.clientConnectionStateChange inCenter: center isOneTime: NO], @"empty");
 	[center removeClientConnectionStateObserver: self];

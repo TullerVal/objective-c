@@ -60,6 +60,10 @@
     [mockConnection verify];
 }
 
+- (BOOL)connectionShouldRestoreConnection:(PNConnection *)connection {
+	return YES;
+}
+
 - (void)testIsConnected {
     PNConnection *connection = [PNConnection connectionWithIdentifier:@"MyTestIdentifier"];
     

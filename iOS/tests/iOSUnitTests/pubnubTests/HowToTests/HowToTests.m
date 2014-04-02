@@ -9,8 +9,6 @@
 #import "PNBaseRequest.h"
 #import "PNBaseRequest+Protected.h"
 
-//#import <OCMock/OCMock.h>
-
 #import "PubNub.h"
 #import "PubNub+Protected.h"
 #import "PNConfiguration.h"

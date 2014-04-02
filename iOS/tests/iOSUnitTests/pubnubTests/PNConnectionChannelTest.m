@@ -613,6 +613,15 @@ connectionDidFailToOrigin:(NSString *)host
 	STAssertTrue( [[channel.storedRequests objectForKey: request.shortIdentifier] objectForKey:@"request"] == nil, @"");
 }
 
+- (BOOL)connectionChannelShouldRestoreConnection:(PNConnectionChannel *)channel {
+	return YES;
+}
+
+- (BOOL)connectionShouldRestoreConnection:(PNConnection *)connection {
+	return YES;
+}
+
+
 -(void)testHasRequestsWithClass {
 	PNConnectionChannel *channel = [PNConnectionChannel connectionChannelWithType: PNConnectionChannelMessaging andDelegate: self];
 	PNBaseRequest *request = [[PNBaseRequest alloc] init];

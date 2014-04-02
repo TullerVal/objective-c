@@ -10,7 +10,7 @@
 #import "PNReachability.h"
 #import "PubNub+Protected.h"
 
-#import <OCMock/OCMock.h>
+#import "OCMock.h"
 
 #import <SystemConfiguration/SystemConfiguration.h>
 

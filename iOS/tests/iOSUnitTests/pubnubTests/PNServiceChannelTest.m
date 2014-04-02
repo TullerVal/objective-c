@@ -17,6 +17,24 @@
 
 #import <OCMock/OCMock.h>
 
+@interface PNMessage ()
+@property (nonatomic, assign, getter = shouldCompressMessage) BOOL compressMessage;
+@end
+
+@interface PNServiceChannel ()
++ (PNMessage *)sendMessage:(id)message toChannel:(PNChannel *)channel;
+@end
+
+@interface PNMessage (test)
+
++ (PNMessage *)messageWithObject:(id)object forChannel:(PNChannel *)channel compressed:(BOOL)shouldCompressMessage error:(PNError **)error;
++ (PNMessage *)messageFromServiceResponse:(id)messageBody onChannel:(PNChannel *)channel atDate:(PNDate *)messagePostDate;
+- (id)initWithObject:(id)object forChannel:(PNChannel *)channel compressed:(BOOL)shouldCompressMessage;
+@property (nonatomic, assign, getter = shouldCompressMessage) BOOL compressMessage;
+
+@end
+
+
 @implementation PNServiceChannelTest
 
 - (void)setUp
@@ -63,51 +81,5 @@
     STAssertNotNil(channel, @"Channel is not available");
 }
 
-
-#pragma mark - Interaction tests
-
-- (void)testSendMessage {
-    /*
-     Test scenario:
-     - initService with some delegate object
-     - send a message
-     - expect scheduleRequest method of channel ivoked
-    */
-    
-    PNServiceChannel *channel = [PNServiceChannel serviceChannelWithDelegate:nil];
-    
-    id mock = [OCMockObject mockForClass:[PNServiceChannel class]];
-    
-	//    [[mock expect] message]; - (PNMessage *)sendMessage:(id)object toChannel:(PNChannel *)channel compressed:(BOOL)shouldCompressMessage {
-
-	[[[[mock expect] ignoringNonObjectArgs] andReturn:nil] sendMessage: [OCMArg any] toChannel: [OCMArg any] compressed: [OCMArg any]];
-
-	[[[[mock stub] ignoringNonObjectArgs] andReturn:nil] sendMessage: [OCMArg any] toChannel: [OCMArg any] compressed: [OCMArg any]];
-//    [[[mock stub] andReturn:nil] message];
-//    [[[mock stub] andReturn:nil] channel];
-
-    [channel sendMessage:mock];
-    
-    [mock verify];
-}
-
-- (void)testSendMessageToChannel {
-    /*
-     Test scenario:
-     - initService with some delegate object
-     - send a message to specific channel
-     - expect scheduleRequest method of channel ivoked
-     */
-    
-    PNServiceChannel *channel = [PNServiceChannel serviceChannelWithDelegate:nil];
-    
-    id mockChannel = [OCMockObject partialMockForObject:channel];
-    
-    [[mockChannel expect] scheduleRequest:OCMOCK_ANY
-                  shouldObserveProcessing:YES];
-    
-    [mockChannel sendMessage:@"Message from unit-tests" toChannel:mockChannel];
-    [mockChannel verify];
-}
 
 @end
